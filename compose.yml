@@ -1,0 +1,114 @@
+name: openuem
+
+services:  
+  db:    
+    build: ./build/postgres
+    environment:
+      - POSTGRES_PASSWORD=apassword
+    ports:
+      - 5432:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+
+  openuem-certs:
+    container_name: openuem-certs
+    build: ./build/certs
+    entrypoint: 
+      - /bin/create-certs.sh
+    env_file:
+      - .env
+    volumes:
+      - ./certificates:/certificates
+    depends_on:
+      db:
+        condition: service_healthy
+  
+  init-db:
+    image: doncicuto/openuem-initdb
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+
+  ocsp-responder:
+    image: doncicuto/openuem-ocsp-responder
+    command: "start"
+    env_file:
+      - .env
+    volumes:
+      - ./certificates/ocsp:/tmp/certificates
+    ports:
+      - 8000:8000
+    depends_on:
+      openuem-certs:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+
+  nats-server:
+     build: ./build/nats
+     ports:
+      - 4433:4433
+      - 8433:8433
+     volumes:
+      - ./certificates/nats:/etc/nats-certificates
+     depends_on:
+      openuem-certs:
+        condition: service_completed_successfully
+      ocsp-responder:
+        condition: service_started
+
+  notification-worker:
+      image: doncicuto/openuem-worker
+      command: "notifications start"
+      env_file:
+        - .env
+      volumes:
+        - ./certificates/notification-worker:/tmp/certificates
+      depends_on:
+        openuem-certs:
+          condition: service_completed_successfully
+        db:
+          condition: service_healthy
+        nats-server:
+          condition: service_started
+
+  cert-manager-worker:
+      image: doncicuto/openuem-worker
+      command: "cert-manager start"
+      env_file:
+        - .env
+      volumes:
+        - ./certificates/cert-manager-worker:/tmp/certificates
+      depends_on:
+        openuem-certs:
+          condition: service_completed_successfully
+        db:
+          condition: service_healthy
+        nats-server:
+          condition: service_started
+
+  agents-worker:
+      image: doncicuto/openuem-worker
+      command: "agents start"
+      env_file:
+        - .env
+      volumes:
+        - ./certificates/agents-worker:/tmp/certificates
+      depends_on:
+        openuem-certs:
+          condition: service_completed_successfully
+        db:
+          condition: service_healthy
+        nats-server:
+          condition: service_started
+
+volumes:
+  pgdata:
+    driver: local
