@@ -1,112 +1,121 @@
 #!/bin/bash
-
 set -e
 
 # Create certificates directory
-mkdir -p /tmp/certificates && mkdir -p /certificates/{agent,nats,ocsp,notification-worker,cert-manager-worker,agents-worker,ca,users,console} 
+mkdir -p /tmp/certificates && mkdir -p /certificates/{agents,nats,ocsp,notification-worker,cert-manager-worker,agents-worker,ca,users,console,updater} 
 cd /tmp
 
 # Create CA certificate and private key
 if [ ! -f /certificates/ca/ca.cer ] && [ ! -f /certificates/ca/ca.key ]; then
-/bin/openuem-cert-manager create-ca --name "$CA_NAME" --org "$CA_ORG" \
-    --country "$CA_COUNTRY" --province "$CA_PROVINCE" --locality "$CA_LOCALITY" \
-    --address "$CA_ADDRESS" --postal-code "$CA_POSTAL_CODE" \
-    --years-valid $CA_YEARS_VALID && \
-cp /tmp/certificates/ca.* /certificates/ca/
+    /bin/openuem-cert-manager create-ca --name "OpenUEM CA" --dst "/certificates/ca" \
+        --org "$ORGNAME" --country "$COUNTRY" --province "$ORGPROVINCE" --locality "$ORGLOCALITY" \
+        --address "$ORGADDRESS" --years-valid 10
 fi
 
 # Create NATS server certificate and private key
-if [ ! -f /certificates/nats/nats.cer ] && [ ! -f /certificates/nats/nats.key ] && [ ! -f /certificates/nats/ca.cer ]; then
-/bin/openuem-cert-manager server-cert --name "$NATS_CERT_NAME" --org "$CA_ORG" \
-    --country "$CA_COUNTRY" --province "$CA_PROVINCE" --locality "$CA_LOCALITY" \
-    --address "$CA_ADDRESS" --postal-code "$CA_POSTAL_CODE" \
-    --years-valid $NATS_CERT_YEARS_VALID \
-    --dns-names "nats-server" \
-    --filename "nats" --ocsp "$OCSP" --description "NATS certificate" \
-    --cacert "/certificates/ca/ca.cer" --cakey="/certificates/ca/ca.key" && \
-cp /certificates/ca/ca.cer /certificates/nats/ && cp /tmp/certificates/nats.* /certificates/nats/
+if [ ! -f /certificates/nats/nats.cer ] && [ ! -f /certificates/nats/nats.key ]; then
+    /bin/openuem-cert-manager server-cert --name "OpenUEM NATS" --dst "/certificates/nats" \
+        --type="nats" --client-too --dns-names "$SERVER_NAME,nats-server,localhost" --org "$ORGNAME" \
+        --country "$COUNTRY" --province "$ORGPROVINCE" --locality "$ORGLOCALITY" \
+        --address "$ORGADDRESS" --years-valid 2 --filename "nats" \
+        --ocsp "http://ocsp-responder:$OCSP_PORT" \
+        --dburl "$DATABASE_URL" --description "NATS certificate" \
+        --cacert "/certificates/ca/ca.cer" --cakey "/certificates/ca/ca.key" 
 fi
 
 # Create OCSP server certificate and private key
-if [ ! -f /certificates/ocsp/ocsp.cer ] && [ ! -f /certificates/nats/ocsp.key ] && [ ! -f /certificates/ocsp/ca.cer ]; then
-/bin/openuem-cert-manager server-cert --name "$OCSP_CERT_NAME" --org "$CA_ORG" \
-    --country "$CA_COUNTRY" --province "$CA_PROVINCE" --locality "$CA_LOCALITY" \
-    --address "$CA_ADDRESS" --postal-code "$CA_POSTAL_CODE" \
-    --years-valid $OCSP_CERT_YEARS_VALID \
-    --filename "ocsp" --ocsp "$OCSP" \
-    --cacert "/certificates/ca/ca.cer" --cakey="/certificates/ca/ca.key"\
-    --sign-ocsp --description "OCSP certificate" && \
-cp /certificates/ca/ca.cer /certificates/ocsp/ && cp /tmp/certificates/ocsp.* /certificates/ocsp/
+if [ ! -f /certificates/ocsp/ocsp.cer ] && [ ! -f /certificates/ocsp/ocsp.key ]; then
+    /bin/openuem-cert-manager server-cert --name "OpenUEM OCSP" --dst "/certificates/ocsp" \
+        --type="ocsp" --sign-ocsp --org "$ORGNAME" --country "$COUNTRY" --province "$ORGPROVINCE" \
+        --locality "$ORGLOCALITY" --address "$ORGADDRESS" --years-valid 2 --filename "ocsp" \
+        --ocsp "http://ocsp-responder:$OCSP_PORT" --description "OCSP certificate" \
+        --cacert "/certificates/ca/ca.cer" --cakey "/certificates/ca/ca.key" --dburl "$DATABASE_URL" 
 fi
 
 # Create notification worker client certificate and private key
-if [ ! -f /certificates/notification-worker/worker.cer ] && [ ! -f /certificates/notification-worker/worker.key ] && [ ! -f /certificates/notification-worker/ca.cer ]; then
-/bin/openuem-cert-manager client-cert --name "OpenUEM Notification Worker" --org "$CA_ORG" \
-    --country "$CA_COUNTRY" --province "$CA_PROVINCE" --locality "$CA_LOCALITY" \
-    --address "$CA_ADDRESS" --postal-code "$CA_POSTAL_CODE" \
-    --years-valid $CLIENT_CERT_YEARS_VALID \
-    --filename "worker" --ocsp "$OCSP" \
-    --cacert "/certificates/ca/ca.cer" --cakey="/certificates/ca/ca.key" \
-    --type "worker" --dburl "$DATABASE_URL" --description "Worker's certificate" && \
-mv /tmp/certificates/worker.* /certificates/notification-worker/ && cp /certificates/ca/ca.cer /certificates/notification-worker/
+if [ ! -f /certificates/notification-worker/worker.cer ] && [ ! -f /certificates/notification-worker/worker.key ]; then
+    /bin/openuem-cert-manager client-cert --name "OpenUEM Notification Worker" \
+    --dst "/certificates/notification-worker" --type="worker" --org "$ORGNAME" \
+    --country "$COUNTRY" --province "$ORGPROVINCE" --locality "$ORGLOCALITY" \
+    --address "$ORGADDRESS" --years-valid 2 --filename "worker" \
+    --ocsp "http://ocsp-responder:$OCSP_PORT" --description "Notification Worker's certificate" \
+    --cacert "/certificates/ca/ca.cer" --cakey "/certificates/ca/ca.key" --dburl "$DATABASE_URL" 
 fi
 
 # Create cert-manager worker client certificate and private key
-if [ ! -f /certificates/cert-manager-worker/worker.cer ] && [ ! -f /certificates/cert-manager-worker/worker.key ] && [ ! -f /certificates/cert-manager-worker/ca.cer ]; then
-/bin/openuem-cert-manager client-cert --name "OpenUEM Cert-Manager Worker" --org "$CA_ORG" \
-    --country "$CA_COUNTRY" --province "$CA_PROVINCE" --locality "$CA_LOCALITY" \
-    --address "$CA_ADDRESS" --postal-code "$CA_POSTAL_CODE" \
-    --years-valid $CLIENT_CERT_YEARS_VALID \
-    --filename "worker" --ocsp "$OCSP" \
-    --cacert "/certificates/ca/ca.cer" --cakey="/certificates/ca/ca.key" \
-    --type "worker" --dburl "$DATABASE_URL" --description "Worker's certificate" && \
-mv /tmp/certificates/worker.* /certificates/cert-manager-worker/ && cp /certificates/ca/ca.* /certificates/cert-manager-worker/
+if [ ! -f /certificates/cert-manager-worker/worker.cer ] && [ ! -f /certificates/cert-manager-worker/worker.key ]; then
+    /bin/openuem-cert-manager client-cert --name "OpenUEM Cert-Manager Worker" \
+    --dst "/certificates/cert-manager-worker" --type="worker" --org "$ORGNAME" \
+    --country "$COUNTRY" --province "$ORGPROVINCE" --locality "$ORGLOCALITY" \
+    --address "$ORGADDRESS" --years-valid 2 --filename "worker" \
+    --ocsp "http://ocsp-responder:$OCSP_PORT" --description "Cert-Manager Worker's certificate" \
+    --cacert "/certificates/ca/ca.cer" --cakey "/certificates/ca/ca.key" --dburl "$DATABASE_URL" 
 fi
 
-# Create cert-manager worker client certificate and private key
-if [ ! -f /certificates/agents-worker/worker.cer ] && [ ! -f /certificates/agents-worker/worker.key ] && [ ! -f /certificates/agents-worker/ca.cer ]; then
-/bin/openuem-cert-manager client-cert --name "OpenUEM Agent Worker" --org "$CA_ORG" \
-    --country "$CA_COUNTRY" --province "$CA_PROVINCE" --locality "$CA_LOCALITY" \
-    --address "$CA_ADDRESS" --postal-code "$CA_POSTAL_CODE" \
-    --years-valid $CLIENT_CERT_YEARS_VALID \
-    --filename "worker" --ocsp "$OCSP" \
-    --cacert "/certificates/ca/ca.cer" --cakey="/certificates/ca/ca.key" \
-    --type "worker" --dburl "$DATABASE_URL" --description "Worker's certificate" && \
-mv /tmp/certificates/worker.* /certificates/agents-worker/ && cp /certificates/ca/ca.cer /certificates/agents-worker/
+# Create agent worker client certificate and private key
+if [ ! -f /certificates/agents-worker/worker.cer ] && [ ! -f /certificates/agents-worker/worker.key ]; then
+    /bin/openuem-cert-manager client-cert --name "OpenUEM Agent Worker" \
+    --dst "/certificates/agents-worker" --type="worker" --org "$ORGNAME" \
+    --country "$COUNTRY" --province "$ORGPROVINCE" --locality "$ORGLOCALITY" \
+    --address "$ORGADDRESS" --years-valid 2 --filename "worker" \
+    --ocsp "http://ocsp-responder:$OCSP_PORT" --description "Agent Worker's certificate" \
+    --cacert "/certificates/ca/ca.cer" --cakey "/certificates/ca/ca.key" --dburl "$DATABASE_URL" 
 fi
 
 # Create console client/server certificate and private key 
-if [ ! -f /certificates/console/console.cer ] && [ ! -f /certificates/console/console.key ] && [ ! -f /certificates/console/ca.cer ]; then
-/bin/openuem-cert-manager server-cert --name "$CONSOLE_CERT_NAME" --org "$CA_ORG" \
-    --country "$CA_COUNTRY" --province "$CA_PROVINCE" --locality "$CA_LOCALITY" \
-    --address "$CA_ADDRESS" --postal-code "$CA_POSTAL_CODE" \
-    --years-valid $CONSOLE_CERT_YEARS_VALID \
-    --dns-names "console,localhost" \
-    --filename "console" --ocsp "$OCSP" --client-too --description "Console certificate" \
-    --cacert "/certificates/ca/ca.cer" --cakey="/certificates/ca/ca.key" && \
-cp /certificates/ca/ca.cer /certificates/console/ && cp /tmp/certificates/console.* /certificates/console/
+if [ ! -f /certificates/console/console.cer ] && [ ! -f /certificates/console/console.key ]; then
+    /bin/openuem-cert-manager server-cert --name "OpenUEM Console" --dst "/certificates/console" \
+    --type="console" --client-too --dns-names "$SERVER_NAME,console,localhost" --org "$ORGNAME" \
+    --country "$COUNTRY" --province "$ORGPROVINCE" --locality "$ORGLOCALITY" \
+    --address "$ORGADDRESS" --years-valid 2 --filename "console" \
+    --ocsp "http://ocsp-responder:$OCSP_PORT" --description "Console certificate" \
+    --cacert "/certificates/ca/ca.cer" --cakey "/certificates/ca/ca.key" --dburl "$DATABASE_URL" 
+fi
+
+# Create console reverse proxy certificate and private key
+if [ -n "$REVERSE_PROXY_SERVER"] && [ ! -f /certificates/console/proxy.cer ] && [ ! -f /certificates/console/proxy.key ]; then
+    /bin/openuem-cert-manager server-cert --name "OpenUEM Reverse Proxy" --dst "/certificates/console" \
+    --type="proxy" --dns-names "$REVERSE_PROXY_SERVER" --org "$ORGNAME" \
+    --country "$COUNTRY" --province "$ORGPROVINCE" --locality "$ORGLOCALITY" \
+    --address "$ORGADDRESS" --years-valid 2 --filename "proxy" \
+    --ocsp "http://ocsp-responder:$OCSP_PORT" --description "Reverse Proxy certificate" \
+    --cacert "/certificates/ca/ca.cer" --cakey "/certificates/ca/ca.key" --dburl "$DATABASE_URL"
+fi
+
+# Create console SFTP credentials both certificate and private key
+if [ ! -f /certificates/console/sftp.cer ] && [ ! -f /certificates/console/sftp.key ]; then
+    /bin/openuem-cert-manager client-cert --name "OpenUEM SFTP Client" --dst "/certificates/console" \
+    --type="console" --org "$ORGNAME" --country "$COUNTRY" \
+    --province "$ORGPROVINCE" --locality "$ORGLOCALITY" \
+    --address "$ORGADDRESS" --years-valid 2 --filename "sftp" \
+    --ocsp "http://ocsp-responder:$OCSP_PORT" --description "SFTP Client" \
+    --cacert "/certificates/ca/ca.cer" --cakey "/certificates/ca/ca.key" --dburl "$DATABASE_URL"
+fi
+
+# Create server updater certificate and private key
+if [ ! -f /certificates/updater/updater.cer ] && [ ! -f /certificates/updater/updater.key ]; then
+    /bin/openuem-cert-manager client-cert --name "OpenUEM Updater Client" --dst "/certificates/updater" \
+    --type="updater" --org "$ORGNAME" --country "$COUNTRY" \
+    --province "$ORGPROVINCE" --locality "$ORGLOCALITY" \
+    --address "$ORGADDRESS" --years-valid 2 --filename "updater" \
+    --ocsp "http://ocsp-responder:$OCSP_PORT" --description "Updater Client" \
+    --cacert "/certificates/ca/ca.cer" --cakey "/certificates/ca/ca.key" --dburl "$DATABASE_URL"
 fi
 
 # Create agent client/server certificate and private key 
-if [ ! -f /certificates/agent/agent.cer ] && [ ! -f /certificates/agent/agent.key ] && [ ! -f /certificates/agent/ca.cer ]; then
-/bin/openuem-cert-manager server-cert --name "$AGENT_CERT_NAME" --org "$CA_ORG" \
-    --country "$CA_COUNTRY" --province "$CA_PROVINCE" --locality "$CA_LOCALITY" \
-    --address "$CA_ADDRESS" --postal-code "$CA_POSTAL_CODE" \
-    --years-valid $AGENT_CERT_YEARS_VALID \
-    --dns-names "*.openuem.eu" \
-    --filename "agent" --ocsp "$OCSP" --client-too --description "Agent certificate" \
-    --cacert "/certificates/ca/ca.cer" --cakey="/certificates/ca/ca.key" && \
-cp /certificates/ca/ca.cer /certificates/agent/ && cp /tmp/certificates/agent.* /certificates/agent/
+if [ ! -f /certificates/agents/agent.cer ] && [ ! -f /certificates/agents/agent.key ]; then
+    /bin/openuem-cert-manager client-cert --name "OpenUEM Agent" --dst "/certificates/agents" \
+    --type="agent" --org "$ORGNAME" --country "$COUNTRY" --province "$ORGPROVINCE" --locality "$ORGLOCALITY" \
+    --address "$ORGADDRESS" --years-valid 2 --filename "agent" \
+    --ocsp "http://ocsp-responder:$OCSP_PORT" --description "Agent certificate" \
+    --cacert "/certificates/ca/ca.cer" --cakey "/certificates/ca/ca.key" --dburl "$DATABASE_URL"
 fi
 
 # Create admin client certificate and private key for console access
-if [ ! -f /certificates/users/admin.cer ] && [ ! -f /certificates/users/admin.key ] && [ ! -f /certificates/users/ca.cer ]; then
-/bin/openuem-cert-manager user-cert --username admin --org "$CA_ORG" \
-    --country "$CA_COUNTRY" --province "$CA_PROVINCE" --locality "$CA_LOCALITY" \
-    --address "$CA_ADDRESS" --postal-code "$CA_POSTAL_CODE" \
-    --years-valid $CLIENT_CERT_YEARS_VALID \
-    --ocsp "$OCSP" \
-    --cacert "/certificates/ca/ca.cer" --cakey="/certificates/ca/ca.key" \
-    --dburl "$DATABASE_URL" --description "Administrator's certificate" &&\
-cp /tmp/certificates/admin.* /certificates/users/ && cp /certificates/ca/ca.cer /certificates/users/
+if [ ! -f /certificates/users/admin.pfx ]; then
+    /bin/openuem-cert-manager user-cert --username admin --dst "/certificates/users" \
+    --org "$ORGNAME" --country "$COUNTRY" --province "$ORGPROVINCE" --locality "$ORGLOCALITY" \
+    --address "$ORGADDRESS" --years-valid 2 \
+    --ocsp "http://ocsp-responder:$OCSP_PORT" --description "OpenUEM Administrator" \
+    --cacert "/certificates/ca/ca.cer" --cakey "/certificates/ca/ca.key" --dburl "$DATABASE_URL"
 fi

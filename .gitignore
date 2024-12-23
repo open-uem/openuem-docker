@@ -1,2 +1,5 @@
-certificates
 .env
+*\.cer
+*\.key
+*\.log
+*\.pfx
