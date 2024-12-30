@@ -31,7 +31,7 @@ services:
         condition: service_healthy
 
   ocsp-responder:
-    image: doncicuto/openuem-ocsp-responder
+    image: openuem/openuem-ocsp-responder
     command: "start"
     env_file:
       - .env
@@ -75,7 +75,7 @@ services:
         condition: service_started
 
   notification-worker:
-    image: doncicuto/openuem-worker
+    image: openuem/openuem-worker
     command: "notifications start"
     env_file:
       - .env
@@ -92,7 +92,7 @@ services:
         condition: service_started
 
   cert-manager-worker:
-    image: doncicuto/openuem-worker
+    image: openuem/openuem-worker
     command: "cert-manager start --ocsp http://ocsp-responder:8000"
     env_file:
       - .env
@@ -110,7 +110,7 @@ services:
         condition: service_started
 
   agents-worker:
-    image: doncicuto/openuem-worker
+    image: openuem/openuem-worker
     command: "agents start"
     env_file:
       - .env
@@ -125,8 +125,9 @@ services:
         condition: service_healthy
       nats-server:
         condition: service_started
+
   console:
-    image: doncicuto/openuem-console
+    image: openuem/openuem-console
     ports:
       - $CONSOLE_PORT:$CONSOLE_PORT
       - $AUTH_PORT:$AUTH_PORT
@@ -145,6 +146,7 @@ services:
         condition: service_healthy
       nats-server:
         condition: service_started
+
 volumes:
   pgdata:
     driver: local
