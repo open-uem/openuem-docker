@@ -2,7 +2,8 @@ name: openuem
 
 services:
   db:
-    build: ./build/postgres
+    build:
+      context: ./build/postgres
     env_file:
       - .env
     environment:
@@ -16,19 +17,23 @@ services:
       interval: 1s
       timeout: 5s
       retries: 10
+    profiles: ["init"]
 
   openuem-certs:
     container_name: openuem-certs
-    build: ./build/certs
+    build:
+      context: ./build/certs
     entrypoint:
       - /bin/create-certs.sh
     env_file:
       - .env
     volumes:
-      - ./certificates:/certificates
+      - "./certificates:/certificates"
+    profiles: ["init"]
     depends_on:
       db:
         condition: service_healthy
+    
 
   ocsp-responder:
     image: openuem/openuem-ocsp-responder
@@ -36,16 +41,12 @@ services:
     env_file:
       - .env
     volumes:
-      - ./certificates/ocsp/ocsp.cer:/usr/bin/certificates/ocsp.cer
-      - ./certificates/ocsp/ocsp.key:/usr/bin/certificates/ocsp.key
-      - ./certificates/ca/ca.cer:/usr/bin/certificates/ca.cer
+      - "./certificates/ocsp/ocsp.cer:/usr/bin/certificates/ocsp.cer"
+      - "./certificates/ocsp/ocsp.key:/usr/bin/certificates/ocsp.key"
+      - "./certificates/ca/ca.cer:/usr/bin/certificates/ca.cer"
     ports:
       - 8000:8000
-    depends_on:
-      openuem-certs:
-        condition: service_completed_successfully
-      db:
-        condition: service_healthy
+    profiles: ["openuem"]
 
   nats-server:
     container_name: openuem-nats-server
@@ -64,13 +65,12 @@ services:
     ports:
       - $NATS_PORT:$NATS_PORT
     volumes:
-      - ./certificates/nats/nats.cer:/etc/nats-certificates/nats.cer
-      - ./certificates/nats/nats.key:/etc/nats-certificates/nats.key
-      - ./certificates/ca/ca.cer:/etc/nats-certificates/ca.cer
+      - "./certificates/nats/nats.cer:/etc/nats-certificates/nats.cer"
+      - "./certificates/nats/nats.key:/etc/nats-certificates/nats.key"
+      - "./certificates/ca/ca.cer:/etc/nats-certificates/ca.cer"
       - jetstream:/var/lib/jetstream/data
+    profiles: ["openuem"]
     depends_on:
-      openuem-certs:
-        condition: service_completed_successfully
       ocsp-responder:
         condition: service_started
 
@@ -80,14 +80,11 @@ services:
     env_file:
       - .env
     volumes:
-      - ./certificates/notification-worker/worker.cer:/tmp/certificates/worker.cer
-      - ./certificates/notification-worker/worker.key:/tmp/certificates/worker.key
-      - ./certificates/ca/ca.cer:/tmp/certificates/ca.cer
+      - "./certificates/notification-worker/worker.cer:/tmp/certificates/worker.cer"
+      - "./certificates/notification-worker/worker.key:/tmp/certificates/worker.key"
+      - "./certificates/ca/ca.cer:/tmp/certificates/ca.cer"
+    profiles: ["openuem"]
     depends_on:
-      openuem-certs:
-        condition: service_completed_successfully
-      db:
-        condition: service_healthy
       nats-server:
         condition: service_started
 
@@ -97,15 +94,12 @@ services:
     env_file:
       - .env
     volumes:
-      - ./certificates/cert-manager-worker/worker.cer:/tmp/certificates/worker.cer
-      - ./certificates/cert-manager-worker/worker.key:/tmp/certificates/worker.key
-      - ./certificates/ca/ca.cer:/tmp/certificates/ca.cer
-      - ./certificates/ca/ca.key:/tmp/certificates/ca.key
+      - "./certificates/cert-manager-worker/worker.cer:/tmp/certificates/worker.cer"
+      - "./certificates/cert-manager-worker/worker.key:/tmp/certificates/worker.key"
+      - "./certificates/ca/ca.cer:/tmp/certificates/ca.cer"
+      - "./certificates/ca/ca.key:/tmp/certificates/ca.key"
+    profiles: ["openuem"]
     depends_on:
-      openuem-certs:
-        condition: service_completed_successfully
-      db:
-        condition: service_healthy
       nats-server:
         condition: service_started
 
@@ -115,14 +109,11 @@ services:
     env_file:
       - .env
     volumes:
-      - ./certificates/agents-worker/worker.cer:/tmp/certificates/worker.cer
-      - ./certificates/agents-worker/worker.key:/tmp/certificates/worker.key
-      - ./certificates/ca/ca.cer:/tmp/certificates/ca.cer
+      - "./certificates/agents-worker/worker.cer:/tmp/certificates/worker.cer"
+      - "./certificates/agents-worker/worker.key:/tmp/certificates/worker.key"
+      - "./certificates/ca/ca.cer:/tmp/certificates/ca.cer"
+    profiles: ["openuem"]
     depends_on:
-      openuem-certs:
-        condition: service_completed_successfully
-      db:
-        condition: service_healthy
       nats-server:
         condition: service_started
 
@@ -134,16 +125,13 @@ services:
     command: "start"
     env_file:
       - .env
+    profiles: ["openuem"]
     volumes:
-      - ./certificates/console/console.cer:/bin/certificates/console.cer
-      - ./certificates/console/console.key:/bin/certificates/console.key
-      - ./certificates/console/sftp.key:/bin/certificates/sftp.key
-      - ./certificates/ca/ca.cer:/bin/certificates/ca.cer
+      - "./certificates/console/console.cer:/bin/certificates/console.cer"
+      - "./certificates/console/console.key:/bin/certificates/console.key"
+      - "./certificates/console/sftp.key:/bin/certificates/sftp.key"
+      - "./certificates/ca/ca.cer:/bin/certificates/ca.cer"
     depends_on:
-      openuem-certs:
-        condition: service_completed_successfully
-      db:
-        condition: service_healthy
       nats-server:
         condition: service_started
 
