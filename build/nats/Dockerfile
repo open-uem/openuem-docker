@@ -1,4 +1,5 @@
 FROM debian:latest AS build
+RUN apt-get update -y && apt install dos2unix -y
 ARG SERVER_NAME
 ENV SERVER_NAME $SERVER_NAME
 ARG NATS_PORT
@@ -14,6 +15,7 @@ ENV ORGADDRESS $ORGADDRESS
 ARG COUNTRY
 ENV COUNTRY $COUNTRY
 COPY ./generate-nats-conf.sh /bin/generate-nats-conf.sh
+RUN dos2unix /bin/generate-nats-conf.sh
 RUN chmod +x /bin/generate-nats-conf.sh
 RUN /bin/generate-nats-conf.sh
 
