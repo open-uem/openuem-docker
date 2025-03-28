@@ -18,7 +18,7 @@ if [ ! -f /certificates/nats/nats.cer ] && [ ! -f /certificates/nats/nats.key ];
         --type="nats" --client-too --dns-names "$SERVER_NAME,nats-server,localhost" --org "$ORGNAME" \
         --country "$COUNTRY" --province "$ORGPROVINCE" --locality "$ORGLOCALITY" \
         --address "$ORGADDRESS" --years-valid 2 --filename "nats" \
-        --ocsp "http://ocsp-responder:$OCSP_PORT" \
+        --ocsp "http://$OCSP_SERVER_NAME:$OCSP_PORT" \
         --dburl "$DATABASE_URL" --description "NATS certificate" \
         --cacert "/certificates/ca/ca.cer" --cakey "/certificates/ca/ca.key" 
 fi
@@ -28,7 +28,7 @@ if [ ! -f /certificates/ocsp/ocsp.cer ] && [ ! -f /certificates/ocsp/ocsp.key ];
     /bin/openuem-cert-manager server-cert --name "OpenUEM OCSP" --dst "/certificates/ocsp" \
         --type="ocsp" --sign-ocsp --org "$ORGNAME" --country "$COUNTRY" --province "$ORGPROVINCE" \
         --locality "$ORGLOCALITY" --address "$ORGADDRESS" --years-valid 2 --filename "ocsp" \
-        --ocsp "http://ocsp-responder:$OCSP_PORT" --description "OCSP certificate" \
+        --ocsp "http://$OCSP_SERVER_NAME:$OCSP_PORT" --description "OCSP certificate" \
         --cacert "/certificates/ca/ca.cer" --cakey "/certificates/ca/ca.key" --dburl "$DATABASE_URL" 
 fi
 
@@ -38,7 +38,7 @@ if [ ! -f /certificates/notification-worker/worker.cer ] && [ ! -f /certificates
     --dst "/certificates/notification-worker" --type="worker" --org "$ORGNAME" \
     --country "$COUNTRY" --province "$ORGPROVINCE" --locality "$ORGLOCALITY" \
     --address "$ORGADDRESS" --years-valid 2 --filename "worker" \
-    --ocsp "http://ocsp-responder:$OCSP_PORT" --description "Notification Worker's certificate" \
+    --ocsp "http://$OCSP_SERVER_NAME:$OCSP_PORT" --description "Notification Worker's certificate" \
     --cacert "/certificates/ca/ca.cer" --cakey "/certificates/ca/ca.key" --dburl "$DATABASE_URL" 
 fi
 
@@ -48,7 +48,7 @@ if [ ! -f /certificates/cert-manager-worker/worker.cer ] && [ ! -f /certificates
     --dst "/certificates/cert-manager-worker" --type="worker" --org "$ORGNAME" \
     --country "$COUNTRY" --province "$ORGPROVINCE" --locality "$ORGLOCALITY" \
     --address "$ORGADDRESS" --years-valid 2 --filename "worker" \
-    --ocsp "http://ocsp-responder:$OCSP_PORT" --description "Cert-Manager Worker's certificate" \
+    --ocsp "http://$OCSP_SERVER_NAME:$OCSP_PORT" --description "Cert-Manager Worker's certificate" \
     --cacert "/certificates/ca/ca.cer" --cakey "/certificates/ca/ca.key" --dburl "$DATABASE_URL" 
 fi
 
@@ -58,7 +58,7 @@ if [ ! -f /certificates/agents-worker/worker.cer ] && [ ! -f /certificates/agent
     --dst "/certificates/agents-worker" --type="worker" --org "$ORGNAME" \
     --country "$COUNTRY" --province "$ORGPROVINCE" --locality "$ORGLOCALITY" \
     --address "$ORGADDRESS" --years-valid 2 --filename "worker" \
-    --ocsp "http://ocsp-responder:$OCSP_PORT" --description "Agent Worker's certificate" \
+    --ocsp "http://$OCSP_SERVER_NAME:$OCSP_PORT" --description "Agent Worker's certificate" \
     --cacert "/certificates/ca/ca.cer" --cakey "/certificates/ca/ca.key" --dburl "$DATABASE_URL" 
 fi
 
@@ -68,7 +68,7 @@ if [ ! -f /certificates/console/console.cer ] && [ ! -f /certificates/console/co
     --type="console" --client-too --dns-names "$SERVER_NAME,console,localhost" --org "$ORGNAME" \
     --country "$COUNTRY" --province "$ORGPROVINCE" --locality "$ORGLOCALITY" \
     --address "$ORGADDRESS" --years-valid 2 --filename "console" \
-    --ocsp "http://ocsp-responder:$OCSP_PORT" --description "Console certificate" \
+    --ocsp "http://$OCSP_SERVER_NAME:$OCSP_PORT" --description "Console certificate" \
     --cacert "/certificates/ca/ca.cer" --cakey "/certificates/ca/ca.key" --dburl "$DATABASE_URL" 
 fi
 
@@ -78,7 +78,7 @@ if [ -n "$REVERSE_PROXY_SERVER"] && [ ! -f /certificates/console/proxy.cer ] && 
     --type="proxy" --dns-names "$REVERSE_PROXY_SERVER" --org "$ORGNAME" \
     --country "$COUNTRY" --province "$ORGPROVINCE" --locality "$ORGLOCALITY" \
     --address "$ORGADDRESS" --years-valid 2 --filename "proxy" \
-    --ocsp "http://ocsp-responder:$OCSP_PORT" --description "Reverse Proxy certificate" \
+    --ocsp "http://$OCSP_SERVER_NAME:$OCSP_PORT" --description "Reverse Proxy certificate" \
     --cacert "/certificates/ca/ca.cer" --cakey "/certificates/ca/ca.key" --dburl "$DATABASE_URL"
 fi
 
@@ -88,7 +88,7 @@ if [ ! -f /certificates/console/sftp.cer ] && [ ! -f /certificates/console/sftp.
     --type="console" --org "$ORGNAME" --country "$COUNTRY" \
     --province "$ORGPROVINCE" --locality "$ORGLOCALITY" \
     --address "$ORGADDRESS" --years-valid 2 --filename "sftp" \
-    --ocsp "http://ocsp-responder:$OCSP_PORT" --description "SFTP Client" \
+    --ocsp "http://$OCSP_SERVER_NAME:$OCSP_PORT" --description "SFTP Client" \
     --cacert "/certificates/ca/ca.cer" --cakey "/certificates/ca/ca.key" --dburl "$DATABASE_URL"
 fi
 
@@ -98,7 +98,7 @@ if [ ! -f /certificates/updater/updater.cer ] && [ ! -f /certificates/updater/up
     --type="updater" --org "$ORGNAME" --country "$COUNTRY" \
     --province "$ORGPROVINCE" --locality "$ORGLOCALITY" \
     --address "$ORGADDRESS" --years-valid 2 --filename "updater" \
-    --ocsp "http://ocsp-responder:$OCSP_PORT" --description "Updater Client" \
+    --ocsp "http://$OCSP_SERVER_NAME:$OCSP_PORT" --description "Updater Client" \
     --cacert "/certificates/ca/ca.cer" --cakey "/certificates/ca/ca.key" --dburl "$DATABASE_URL"
 fi
 
@@ -107,7 +107,7 @@ if [ ! -f /certificates/agents/agent.cer ] && [ ! -f /certificates/agents/agent.
     /bin/openuem-cert-manager client-cert --name "OpenUEM Agent" --dst "/certificates/agents" \
     --type="agent" --org "$ORGNAME" --country "$COUNTRY" --province "$ORGPROVINCE" --locality "$ORGLOCALITY" \
     --address "$ORGADDRESS" --years-valid 2 --filename "agent" \
-    --ocsp "http://ocsp-responder:$OCSP_PORT" --description "Agent certificate" \
+    --ocsp "http://$OCSP_SERVER_NAME:$OCSP_PORT" --description "Agent certificate" \
     --cacert "/certificates/ca/ca.cer" --cakey "/certificates/ca/ca.key" --dburl "$DATABASE_URL"
 fi
 
@@ -116,6 +116,6 @@ if [ ! -f /certificates/users/admin.pfx ]; then
     /bin/openuem-cert-manager user-cert --username admin --dst "/certificates/users" \
     --org "$ORGNAME" --country "$COUNTRY" --province "$ORGPROVINCE" --locality "$ORGLOCALITY" \
     --address "$ORGADDRESS" --years-valid 2 \
-    --ocsp "http://ocsp-responder:$OCSP_PORT" --description "OpenUEM Administrator" \
+    --ocsp "http://$OCSP_SERVER_NAME:$OCSP_PORT" --description "OpenUEM Administrator" \
     --cacert "/certificates/ca/ca.cer" --cakey "/certificates/ca/ca.key" --dburl "$DATABASE_URL"
 fi

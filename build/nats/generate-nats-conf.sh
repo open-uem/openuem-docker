@@ -46,7 +46,7 @@ authorization: {
     }},
     {user: "CN=OpenUEM Agent,OU=agent,O=$ORGNAME,POSTALCODE=,STREET=$ORGADDRESS,L=$ORGLOCALITY,ST=$ORGPROVINCE,C=$COUNTRY,", permissions: {
       sub: {
-        allow: ["_INBOX.>", "agent.update.>", "agentrollback.>", "agent.certificate", "agent.newconfig", "agent.installpackage.>", "agent.uninstallpackage.>", "agent.updatepackage.>", "agent.enable.>", "agent.disable.>", "agent.report.>","agent.startvnc.> openuem-agent-management", "agent.stopvnc.> openuem-agent-management", "agent.restart.> openuem-agent-management", "agent.poweroff.> openuem-agent-management", "agent.reboot.> openuem-agent-management" ]
+        allow: ["_INBOX.>", "agent.update.>", "agentrollback.>", "agent.certificate", "agent.newconfig", "agent.installpackage.>", "agent.uninstallpackage.>", "agent.updatepackage.>", "agent.enable.>", "agent.disable.>", "agent.report.>","agent.startvnc.> openuem-agent-management", "agent.stopvnc.> openuem-agent-management", "agent.restart.> openuem-agent-management", "agent.poweroff.> openuem-agent-management", "agent.reboot.> openuem-agent-management", "agent.enabledebug.> openuem-agent-management", "agent.disabledebug.> openuem-agent-management" ]
       },
       publish: ["report", "_INBOX.>", "deployresult", "agentconfig", "wingetcfg.>", "\$JS.API.STREAM.INFO.AGENTS_STREAM", "\$JS.API.CONSUMER.CREATE.>", "\$JS.API.CONSUMER.MSG.NEXT.>", "\$JS.ACK.>", "\$JS.NACK.>"]
     }},
