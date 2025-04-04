@@ -93,7 +93,7 @@ services:
   cert-manager-worker:
     image: openuem/openuem-worker
     pull_policy: always
-    command: "cert-manager start --ocsp http://ocsp-responder:8000"
+    command: "cert-manager start"
     env_file:
       - .env
     volumes:
