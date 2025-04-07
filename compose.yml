@@ -33,12 +33,12 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    
 
   ocsp-responder:
     image: openuem/openuem-ocsp-responder
     pull_policy: always
     command: "start"
+    restart: always
     env_file:
       - .env
     volumes:
@@ -65,6 +65,7 @@ services:
       - .env
     ports:
       - $NATS_PORT:$NATS_PORT
+    restart: always
     volumes:
       - "./certificates/nats/nats.cer:/etc/nats-certificates/nats.cer"
       - "./certificates/nats/nats.key:/etc/nats-certificates/nats.key"
@@ -79,6 +80,7 @@ services:
     image: openuem/openuem-worker
     pull_policy: always
     command: "notifications start"
+    restart: always
     env_file:
       - .env
     volumes:
@@ -94,6 +96,7 @@ services:
     image: openuem/openuem-worker
     pull_policy: always
     command: "cert-manager start"
+    restart: always
     env_file:
       - .env
     volumes:
@@ -110,6 +113,7 @@ services:
     image: openuem/openuem-worker
     pull_policy: always
     command: "agents start"
+    restart: always
     env_file:
       - .env
     volumes:
@@ -128,6 +132,7 @@ services:
       - $CONSOLE_PORT:$CONSOLE_PORT
       - $AUTH_PORT:$AUTH_PORT
     command: "start"
+    restart: always
     env_file:
       - .env
     profiles: ["openuem"]
