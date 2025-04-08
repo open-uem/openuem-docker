@@ -10,6 +10,7 @@ services:
       - POSTGRES_PASSWORD=apassword
     ports:
       - $POSTGRES_PORT:5432
+    restart: always
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
