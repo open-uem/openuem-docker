@@ -47,7 +47,7 @@ services:
       - "./certificates/ocsp/ocsp.key:/usr/bin/certificates/ocsp.key"
       - "./certificates/ca/ca.cer:/usr/bin/certificates/ca.cer"
     ports:
-      - 8000:8000
+      - $OCSP_PORT:$OCSP_PORT
     profiles: ["openuem"]
 
   nats-server:
