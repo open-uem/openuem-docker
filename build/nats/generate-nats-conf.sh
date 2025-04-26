@@ -23,16 +23,16 @@ authorization: {
   users = [
     {user: "CN=OpenUEM Cert-Manager Worker,OU=worker,O=$ORGNAME,POSTALCODE=,STREET=$ORGADDRESS,L=$ORGLOCALITY,ST=$ORGPROVINCE,C=$COUNTRY,", permissions: {
       sub: {
-        allow: ["_INBOX.>", "certificates.>", "ping.certmanagerworker openuem-cert-manager", "\$JS.API.STREAM.CREATE.>", "\$JS.API.STREAM.UPDATE.>", "\$JS.API.CONSUMER.CREATE.>", "\$JS.API.CONSUMER.MSG.NEXT.>", "\$JS.ACK.>", "\$JS.NACK.>"]
+        allow: ["_INBOX.>", "certificates.> openuem-cert-manager", "ping.certmanagerworker openuem-cert-manager", "\$JS.API.STREAM.CREATE.>", "\$JS.API.STREAM.UPDATE.>", "\$JS.API.CONSUMER.CREATE.>", "\$JS.API.CONSUMER.MSG.NEXT.>", "\$JS.ACK.>", "\$JS.NACK.>"]
       }
     }},
     {user: "CN=OpenUEM Notification Worker,OU=worker,O=$ORGNAME,POSTALCODE=,STREET=$ORGADDRESS,L=$ORGLOCALITY,ST=$ORGPROVINCE,C=$COUNTRY,", permissions: {
       sub: {
-        allow: ["_INBOX.>", "notification.>", "ping.notificationworker openuem-notification", "\$JS.API.STREAM.CREATE.>", "\$JS.API.STREAM.UPDATE.>", "\$JS.API.CONSUMER.CREATE.>", "\$JS.API.CONSUMER.MSG.NEXT.>", "\$JS.ACK.>", "\$JS.NACK.>"]
+        allow: ["_INBOX.>", "notification.> openuem-notification", "ping.notificationworker openuem-notification", "\$JS.API.STREAM.CREATE.>", "\$JS.API.STREAM.UPDATE.>", "\$JS.API.CONSUMER.CREATE.>", "\$JS.API.CONSUMER.MSG.NEXT.>", "\$JS.ACK.>", "\$JS.NACK.>"]
       }
     }},
     {user: "CN=OpenUEM Console,O=$ORGNAME,POSTALCODE=,STREET=$ORGADDRESS,L=$ORGLOCALITY,ST=$ORGPROVINCE,C=$COUNTRY,", permissions: {
-      publish: ["agent.>", "agentrollback.>", "notification.>", "certificates.>", "ping.>", "server.update.>", "\$JS.API.STREAM.CREATE.>", "\$JS.API.STREAM.UPDATE.>",]
+      publish: ["agent.>", "agentrollback.>", "notification.>", "certificates.>", "ping.>", "server.update.>", "\$JS.API.STREAM.CREATE.>", "\$JS.API.STREAM.UPDATE.>", "\$JS.API.STREAM.INFO.SERVERS_STREAM"]
     }},
     {user: "CN=OpenUEM Updater Client,OU=updater,O=$ORGNAME,POSTALCODE=,STREET=$ORGADDRESS,L=$ORGLOCALITY,ST=$ORGPROVINCE,C=$COUNTRY,", permissions: {
       sub: {
