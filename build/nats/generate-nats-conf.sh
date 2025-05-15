@@ -28,7 +28,7 @@ authorization: {
     }},
     {user: "CN=OpenUEM Notification Worker,OU=worker,O=$ORGNAME,POSTALCODE=,STREET=$ORGADDRESS,L=$ORGLOCALITY,ST=$ORGPROVINCE,C=$COUNTRY,", permissions: {
       sub: {
-        allow: ["_INBOX.>", "notification.> openuem-notification", "ping.notificationworker openuem-notification", "\$JS.API.STREAM.CREATE.>", "\$JS.API.STREAM.UPDATE.>", "\$JS.API.CONSUMER.CREATE.>", "\$JS.API.CONSUMER.MSG.NEXT.>", "\$JS.ACK.>", "\$JS.NACK.>"]
+        allow: ["_INBOX.>", "notification.reload_settings", "notification.> openuem-notification", "ping.notificationworker openuem-notification", "\$JS.API.STREAM.CREATE.>", "\$JS.API.STREAM.UPDATE.>", "\$JS.API.CONSUMER.CREATE.>", "\$JS.API.CONSUMER.MSG.NEXT.>", "\$JS.ACK.>", "\$JS.NACK.>"]
       }
     }},
     {user: "CN=OpenUEM Console,O=$ORGNAME,POSTALCODE=,STREET=$ORGADDRESS,L=$ORGLOCALITY,ST=$ORGPROVINCE,C=$COUNTRY,", permissions: {
@@ -46,7 +46,7 @@ authorization: {
     }},
     {user: "CN=OpenUEM Agent,OU=agent,O=$ORGNAME,POSTALCODE=,STREET=$ORGADDRESS,L=$ORGLOCALITY,ST=$ORGPROVINCE,C=$COUNTRY,", permissions: {
       sub: {
-        allow: ["_INBOX.>", "agent.update.>", "agent.uninstall.>", "agentrollback.>", "agent.certificate", "agent.newconfig", "agent.installpackage.>", "agent.uninstallpackage.>", "agent.updatepackage.>", "agent.enable.>", "agent.disable.>", "agent.report.>", "agent.installpackage.>", "agent.settings.>", "agent.startvnc.> openuem-agent-management", "agent.stopvnc.> openuem-agent-management", "agent.restart.> openuem-agent-management", "agent.poweroff.> openuem-agent-management", "agent.reboot.> openuem-agent-management" ]
+        allow: ["_INBOX.>", "agent.update.>", "agent.uninstall.>", "agentrollback.>", "agent.certificate", "agent.newconfig", "agent.installpackage.>", "agent.uninstallpackage.>", "agent.updatepackage.>", "agent.enable.>", "agent.disable.>", "agent.report.>", "agent.installpackage.>", "agent.settings.>", "agent.startvnc.> openuem-agent-management", "agent.stopvnc.> openuem-agent-management", "agent.restart.> openuem-agent-management", "agent.poweroff.> openuem-agent-management", "agent.reboot.> openuem-agent-management", "agent.removeprinter.> openuem-agent-management", "agent.defaultprinter.> openuem-agent-management" ]
       },
       publish: ["report", "_INBOX.>", "deployresult", "agentconfig", "wingetcfg.>", "\$JS.API.STREAM.INFO.AGENTS_STREAM", "\$JS.API.CONSUMER.CREATE.>", "\$JS.API.CONSUMER.MSG.NEXT.>", "\$JS.ACK.>", "\$JS.NACK.>"]
     }},
