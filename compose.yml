@@ -55,7 +55,7 @@ services:
     build:
       context: ./build/nats
       args:
-        - SERVER_NAME
+        - NATS_SERVER
         - NATS_PORT
         - ORGNAME
         - ORGPROVINCE

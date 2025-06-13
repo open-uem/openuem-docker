@@ -15,7 +15,7 @@ fi
 # Create NATS server certificate and private key
 if [ ! -f /certificates/nats/nats.cer ] && [ ! -f /certificates/nats/nats.key ]; then
     /bin/openuem-cert-manager server-cert --name "OpenUEM NATS" --dst "/certificates/nats" \
-        --type="nats" --client-too --dns-names "$SERVER_NAME,nats-server,localhost" --org "$ORGNAME" \
+        --type="nats" --client-too --dns-names "$NATS_SERVER,nats-server,localhost" --org "$ORGNAME" \
         --country "$COUNTRY" --province "$ORGPROVINCE" --locality "$ORGLOCALITY" \
         --address "$ORGADDRESS" --years-valid 2 --filename "nats" \
         --ocsp "$OCSP" \
@@ -73,7 +73,7 @@ if [ ! -f /certificates/console/console.cer ] && [ ! -f /certificates/console/co
 fi
 
 # Create console reverse proxy certificate and private key
-if [ -n "$REVERSE_PROXY_SERVER"] && [ ! -f /certificates/console/proxy.cer ] && [ ! -f /certificates/console/proxy.key ]; then
+if [ -n "$REVERSE_PROXY_SERVER" ] && [ ! -f /certificates/console/proxy.cer ] && [ ! -f /certificates/console/proxy.key ]; then
     /bin/openuem-cert-manager server-cert --name "OpenUEM Reverse Proxy" --dst "/certificates/console" \
     --type="proxy" --dns-names "$REVERSE_PROXY_SERVER" --org "$ORGNAME" \
     --country "$COUNTRY" --province "$ORGPROVINCE" --locality "$ORGLOCALITY" \
