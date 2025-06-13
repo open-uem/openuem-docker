@@ -146,7 +146,28 @@ services:
       nats-server:
         condition: service_started
 
+  caddy:
+    image: caddy:latest
+    restart: always
+    profiles: ["caddy"]
+    env_file:
+      - .env
+    ports:
+      - "443:443"
+      - $REVERSE_PROXY_AUTH_PORT:$REVERSE_PROXY_AUTH_PORT
+    volumes:
+      - "./caddy/Caddyfile:/etc/caddy/Caddyfile"
+      - "./certificates/ca/ca.cer:/etc/caddy/ca.cer"
+      - "./certificates/console/proxy.cer:/etc/caddy/proxy.cer"
+      - "./certificates/console/proxy.key:/etc/caddy/proxy.key"
+      - caddy_data:/data
+      - caddy_config:/config
+
 volumes:
+  caddy_data:
+    driver: local
+  caddy_config:
+    driver: local
   pgdata:
     driver: local
   jetstream:

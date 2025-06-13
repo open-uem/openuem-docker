@@ -1,0 +1,33 @@
+{$REVERSE_PROXY_SERVER} {
+    tls /etc/caddy/proxy.cer /etc/caddy/proxy.key
+    reverse_proxy https://{$SERVER_NAME}:{$CONSOLE_PORT} {
+        header_up Host {upstream_hostport}
+        transport http {
+            tls
+            tls_trust_pool file {
+                pem_file /etc/caddy/ca.cer
+            }
+        }
+    }
+}
+
+{$REVERSE_PROXY_SERVER}:{$REVERSE_PROXY_AUTH_PORT} {
+    tls /etc/caddy/proxy.cer /etc/caddy/proxy.key {
+        client_auth {
+            mode require_and_verify
+            trust_pool file {
+                pem_file /etc/caddy/ca.cer
+            }
+        }
+    }
+    reverse_proxy https://{$SERVER_NAME}:{$AUTH_PORT} {
+        header_up Host {upstream_hostport}
+        header_up Client-Cert :{tls_client_certificate_der_base64}:
+	    transport http {
+            tls
+            tls_trust_pool file {
+                pem_file /etc/caddy/ca.cer
+            }
+        }
+    }
+}
