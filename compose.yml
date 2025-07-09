@@ -3,18 +3,15 @@ name: openuem
 services:
   db:
     container_name: openuem-db
-    build:
-      context: ./build/postgres
-      args:
-        - DATABASE_NAME=$DATABASE_DB_NAME
-        - DATABASE_USER=$DATABASE_USER
-        - DATABASE_PASSWORD=$DATABASE_PASSWORD
+    image: postgres:latest
     profiles: ["init"]
     restart: always
     command: -p $DATABASE_PORT
     environment:
+      - POSTGRES_USER=$DATABASE_USER
+      - POSTGRES_PASSWORD=$DATABASE_PASSWORD
+      - POSTGRES_DB=$DATABASE_DB_NAME
       - POSTGRES_PORT=$DATABASE_PORT
-      - POSTGRES_PASSWORD=apassword
     expose:
       - $DATABASE_PORT
     ports:
