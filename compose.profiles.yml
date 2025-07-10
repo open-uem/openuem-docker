@@ -19,7 +19,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -p $DATABASE_PORT"]
+      test: [ "CMD-SHELL", "pg_isready -U $DATABASE_USER -p $DATABASE_PORT" ]
       interval: 1s
       timeout: 5s
       retries: 10
