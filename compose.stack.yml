@@ -1,0 +1,270 @@
+name: openuem
+
+services:
+  db:
+    container_name: openuem-db
+    image: postgres:latest
+    restart: always
+    command: -p $DATABASE_PORT
+    environment:
+      - POSTGRES_USER=$DATABASE_USER
+      - POSTGRES_PASSWORD=$DATABASE_PASSWORD
+      - POSTGRES_DB=$DATABASE_DB_NAME
+      - POSTGRES_PORT=$DATABASE_PORT
+    expose:
+      - $DATABASE_PORT
+    ports:
+      - $DATABASE_PORT:$DATABASE_PORT
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -p $DATABASE_PORT" ]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+    networks:
+      - openuem
+
+  openuem-certs:
+    container_name: openuem-certs
+    build:
+      context: ./build/certs
+    entrypoint:
+      - /bin/create-certs.sh
+    environment:
+      - ORGNAME=$OPENUEM_ORGNAME
+      - ORGPROVINCE=$OPENUEM_ORGPROVINCE
+      - ORGLOCALITY=$OPENUEM_ORGLOCALITY
+      - ORGADDRESS=$OPENUEM_ORGADDRESS
+      - COUNTRY=$OPENUEM_ORGCOUNTRY
+      - DOMAIN=$OPENUEM_OPENUEM_DOMAIN
+      - OCSP=$OCSP_URL
+      - DATABASE_URL=$OPENUEM_DATABASE_URL
+      - SERVER_NAME=$CONSOLE_HOST
+      - REVERSE_PROXY_SERVER=$REVERSE_PROXY_HOST
+      - NATS_SERVER=$NATS_HOST
+    volumes:
+      - "./certificates:/certificates:z"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - openuem
+
+  ocsp-responder:
+    container_name: openuem-ocsp-responder
+    image: openuem/openuem-ocsp-responder
+    pull_policy: always
+    command: "start"
+    restart: always
+    environment:
+      - OCSP_PORT=$OCSP_PORT
+      - DATABASE_URL=$OPENUEM_DATABASE_URL
+    ports:
+      - $OCSP_PORT:$OCSP_PORT
+    volumes:
+      - "./certificates/ocsp/ocsp.cer:/usr/bin/certificates/ocsp.cer"
+      - "./certificates/ocsp/ocsp.key:/usr/bin/certificates/ocsp.key"
+      - "./certificates/ca/ca.cer:/usr/bin/certificates/ca.cer"
+    healthcheck:
+      test: [ "CMD-SHELL", "ping -c 1 $OCSP_PORT" ]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+    depends_on:
+      openuem-certs:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+    networks:
+      openuem:
+        aliases:
+          - ocsp.openuem.example
+
+  nats-server:
+    container_name: openuem-nats-server
+    build:
+      context: ./build/nats
+      args:
+        - NATS_SERVER=$NATS_HOST
+        - NATS_PORT=$NATS_PORT
+        - ORGNAME=$OPENUEM_ORGNAME
+        - ORGPROVINCE=$OPENUEM_ORGPROVINCE
+        - ORGLOCALITY=$OPENUEM_ORGLOCALITY
+        - ORGADDRESS=$OPENUEM_ORGADDRESS
+        - COUNTRY=$OPENUEM_ORGCOUNTRY
+    image: nats:latest
+    ports:
+      - $NATS_PORT:$NATS_PORT
+    restart: always
+    command: "-c /etc/nats.cfg"
+    volumes:
+      - "./certificates/nats/nats.cer:/etc/nats-certificates/nats.cer:ro"
+      - "./certificates/nats/nats.key:/etc/nats-certificates/nats.key:ro"
+      - "./certificates/ca/ca.cer:/etc/nats-certificates/ca.cer:ro"
+      - "./nats/nats.cfg:/etc/nats.cfg:z"
+      - jetstream:/var/lib/jetstream/data
+    depends_on:
+      openuem-certs:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+      ocsp-responder:
+        condition: service_started
+    networks:
+      openuem:
+        aliases:
+          - nats.openuem.example
+
+
+  notification-worker:
+    container_name: openuem-notification-worker
+    image: openuem/openuem-worker
+    pull_policy: always
+    command: "notifications start"
+    restart: always
+#    profiles: ["openuem"]
+    environment:
+      - NATS_SERVERS=$OPENUEM_NATS_SERVERS
+      - DATABASE_URL=$OPENUEM_DATABASE_URL
+    volumes:
+      - "./certificates/notification-worker/worker.cer:/tmp/certificates/worker.cer:ro"
+      - "./certificates/notification-worker/worker.key:/tmp/certificates/worker.key:ro"
+      - "./certificates/ca/ca.cer:/tmp/certificates/ca.cer:ro"
+    depends_on:
+      openuem-certs:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+      nats-server:
+        condition: service_started
+    networks:
+      - openuem
+
+  cert-manager-worker:
+    container_name: openuem-cert-manager-worker
+    image: openuem/openuem-worker
+    pull_policy: always
+    command: "cert-manager start"
+    restart: always
+    environment:
+      - OCSP=$OCSP_URL
+      - NATS_SERVERS=$OPENUEM_NATS_SERVERS
+      - DATABASE_URL=$OPENUEM_DATABASE_URL
+    volumes:
+      - "./certificates/cert-manager-worker/worker.cer:/tmp/certificates/worker.cer:z"
+      - "./certificates/cert-manager-worker/worker.key:/tmp/certificates/worker.key:z"
+      - "./certificates/ca/ca.cer:/tmp/certificates/ca.cer:z"
+      - "./certificates/ca/ca.key:/tmp/certificates/ca.key:z"
+    depends_on:
+      openuem-certs:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+      nats-server:
+        condition: service_started
+    networks:
+      - openuem
+
+  agents-worker:
+    container_name: openuem-agents-worker
+    image: openuem/openuem-worker
+    pull_policy: always
+    command: "agents start"
+    restart: always
+    environment:
+      - NATS_SERVERS=$OPENUEM_NATS_SERVERS
+      - DATABASE_URL=$OPENUEM_DATABASE_URL
+    volumes:
+      - "./certificates/agents-worker/worker.cer:/tmp/certificates/worker.cer:ro"
+      - "./certificates/agents-worker/worker.key:/tmp/certificates/worker.key:ro"
+      - "./certificates/ca/ca.cer:/tmp/certificates/ca.cer:ro"
+    depends_on:
+      openuem-certs:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+      nats-server:
+        condition: service_started
+    networks:
+      - openuem
+
+  console:
+    container_name: openuem-console
+    image: openuem/openuem-console
+    restart: always
+    pull_policy: always
+    command: "start"
+    environment:
+      - NATS_SERVERS=$OPENUEM_NATS_SERVERS
+      - DATABASE_URL=$OPENUEM_DATABASE_URL
+      - JWT_KEY=$CONSOLE_JWT_KEY
+      - SERVER_NAME=$CONSOLE_HOST
+      - CONSOLE_PORT=$CONSOLE_PORT
+      - AUTH_PORT=$CONSOLE_AUTH_PORT
+      - DOMAIN=$OPENUEM_DOMAIN
+      - ORGNAME=$OPENUEM_ORGNAME
+      - ORGPROVINCE=$OPENUEM_ORGPROVINCE
+      - ORGLOCALITY=$OPENUEM_ORGLOCALITY
+      - ORGADDRESS=$OPENUEM_ORGADDRESS
+      - COUNTRY=$OPENUEM_COUNTRY
+      - REVERSE_PROXY_AUTH_PORT=$REVERSE_PROXY_AUTH_PORT
+      - REVERSE_PROXY_SERVER=$REVERSE_PROXY_HOST
+    ports:
+      - $CONSOLE_PORT:$CONSOLE_PORT
+      - $AUTH_PORT:$AUTH_PORT
+    volumes:
+      - "./certificates/console/console.cer:/bin/certificates/console.cer:ro"
+      - "./certificates/console/console.key:/bin/certificates/console.key:ro"
+      - "./certificates/console/sftp.key:/bin/certificates/sftp.key:ro"
+      - "./certificates/ca/ca.cer:/bin/certificates/ca.cer:ro"
+    depends_on:
+      openuem-certs:
+        condition: service_completed_successfully
+      db:
+        condition: service_healthy
+      nats-server:
+        condition: service_started
+    networks:
+      openuem:
+        aliases:
+          - console.openuem.example
+
+  caddy:
+    image: caddy:latest
+    restart: always
+    container_name: openuem-reverse-proxy
+    environment:
+      - SERVER_NAME=$CONSOLE_HOST
+      - CONSOLE_PORT=$CONSOLE_PORT
+      - REVERSE_PROXY_SERVER=$REVERSE_PROXY_HOST
+      - REVERSE_PROXY_AUTH_PORT=$REVERSE_PROXY_AUTH_PORT
+      - AUTH_PORT=$CONSOLE_AUTH_PORT
+    ports:
+      - $REVERSE_PROXY_CONSOLE_PORT:443
+      - $REVERSE_PROXY_AUTH_PORT:$REVERSE_PROXY_AUTH_PORT
+    volumes:
+      - "./caddy/Caddyfile:/etc/caddy/Caddyfile:z"
+      - "./certificates/ca/ca.cer:/etc/caddy/ca.cer:ro"
+      - "./certificates/console/proxy.cer:/etc/caddy/proxy.cer:ro"
+      - "./certificates/console/proxy.key:/etc/caddy/proxy.key:ro"
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      console:
+        condition: service_started
+    networks:
+      - openuem
+
+networks:
+  openuem:
+
+volumes:
+  caddy_data:
+    driver: local
+  caddy_config:
+    driver: local
+  pgdata:
+    driver: local
+  jetstream:
+    driver: local
