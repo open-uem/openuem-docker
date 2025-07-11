@@ -1,0 +1,35 @@
+include:
+  - compose.base.yml
+
+services:
+  caddy:
+    image: caddy:latest
+    restart: always
+    container_name: openuem-reverse-proxy
+    environment:
+      - SERVER_NAME=$CONSOLE_HOST
+      - CONSOLE_PORT=$CONSOLE_PORT
+      - REVERSE_PROXY_SERVER=$REVERSE_PROXY_HOST
+      - REVERSE_PROXY_AUTH_PORT=$REVERSE_PROXY_AUTH_PORT
+      - AUTH_PORT=$CONSOLE_AUTH_PORT
+    ports:
+      - $REVERSE_PROXY_CONSOLE_PORT:443
+      - $REVERSE_PROXY_AUTH_PORT:$REVERSE_PROXY_AUTH_PORT
+    volumes:
+      - "./caddy/Caddyfile:/etc/caddy/Caddyfile:z"
+      - "./certificates/ca/ca.cer:/etc/caddy/ca.cer:ro"
+      - "./certificates/console/proxy.cer:/etc/caddy/proxy.cer:ro"
+      - "./certificates/console/proxy.key:/etc/caddy/proxy.key:ro"
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      console:
+        condition: service_started
+    networks:
+      - openuem
+
+volumes:
+  caddy_data:
+    driver: local
+  caddy_config:
+    driver: local
