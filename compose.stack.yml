@@ -66,11 +66,15 @@ services:
       - "./certificates/ocsp/ocsp.cer:/usr/bin/certificates/ocsp.cer"
       - "./certificates/ocsp/ocsp.key:/usr/bin/certificates/ocsp.key"
       - "./certificates/ca/ca.cer:/usr/bin/certificates/ca.cer"
+    # while the docker image contains a HEALTHCHECK definition, podman seems to be ignoring this under certain
+    # circumstances. To allow podman to run this stack as well, the healthcheck definitions are duplicated and set below
+    # as well. See https://github.com/containers/podman/issues/18904 for more details
     healthcheck:
-      test: [ "CMD-SHELL", "ping -c 1 $OCSP_PORT" ]
-      interval: 1s
+      test: curl -f http://localhost:8000/health || exit 1
+      interval: 30s
       timeout: 5s
-      retries: 10
+      start_period: 30s
+      retries: 3
     depends_on:
       openuem-certs:
         condition: service_completed_successfully
@@ -110,7 +114,7 @@ services:
       db:
         condition: service_healthy
       ocsp-responder:
-        condition: service_started
+        condition: service_healthy
     networks:
       openuem:
         aliases:
@@ -123,7 +127,6 @@ services:
     pull_policy: always
     command: "notifications start"
     restart: always
-#    profiles: ["openuem"]
     environment:
       - NATS_SERVERS=$OPENUEM_NATS_SERVERS
       - DATABASE_URL=$OPENUEM_DATABASE_URL
