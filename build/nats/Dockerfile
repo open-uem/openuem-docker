@@ -20,6 +20,10 @@ RUN chmod +x /bin/generate-nats-conf.sh
 RUN /bin/generate-nats-conf.sh
 
 FROM nats:latest
+
+ARG NATS_PORT
+ENV NATS_PORT=$NATS_PORT
+
 COPY --from=build /etc/nats.cfg /etc/nats.cfg
 EXPOSE $NATS_PORT
 CMD ["-c", "/etc/nats.cfg"]
