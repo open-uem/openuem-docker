@@ -53,7 +53,7 @@ services:
 
   ocsp-responder:
     container_name: openuem-ocsp-responder
-    image: openuem/openuem-ocsp-responder:devel
+    image: openuem/openuem-ocsp-responder
     pull_policy: always
     command: "start"
     restart: always
@@ -103,9 +103,9 @@ services:
     restart: always
     command: "-c /etc/nats.cfg"
     volumes:
-      - "./certificates/nats/nats.cer:/etc/nats-certificates/nats.cer:ro"
-      - "./certificates/nats/nats.key:/etc/nats-certificates/nats.key:ro"
-      - "./certificates/ca/ca.cer:/etc/nats-certificates/ca.cer:ro"
+      - "./certificates/nats/nats.cer:/etc/nats-certificates/nats.cer:z"
+      - "./certificates/nats/nats.key:/etc/nats-certificates/nats.key:z"
+      - "./certificates/ca/ca.cer:/etc/nats-certificates/ca.cer:z"
       - "./nats/nats.cfg:/etc/nats.cfg:z"
       - jetstream:/var/lib/jetstream/data
     depends_on:
@@ -131,9 +131,9 @@ services:
       - NATS_SERVERS=$OPENUEM_NATS_SERVERS
       - DATABASE_URL=$OPENUEM_DATABASE_URL
     volumes:
-      - "./certificates/notification-worker/worker.cer:/tmp/certificates/worker.cer:ro"
-      - "./certificates/notification-worker/worker.key:/tmp/certificates/worker.key:ro"
-      - "./certificates/ca/ca.cer:/tmp/certificates/ca.cer:ro"
+      - "./certificates/notification-worker/worker.cer:/tmp/certificates/worker.cer:z"
+      - "./certificates/notification-worker/worker.key:/tmp/certificates/worker.key:z"
+      - "./certificates/ca/ca.cer:/tmp/certificates/ca.cer:z"
     depends_on:
       openuem-certs:
         condition: service_completed_successfully
@@ -179,9 +179,9 @@ services:
       - NATS_SERVERS=$OPENUEM_NATS_SERVERS
       - DATABASE_URL=$OPENUEM_DATABASE_URL
     volumes:
-      - "./certificates/agents-worker/worker.cer:/tmp/certificates/worker.cer:ro"
-      - "./certificates/agents-worker/worker.key:/tmp/certificates/worker.key:ro"
-      - "./certificates/ca/ca.cer:/tmp/certificates/ca.cer:ro"
+      - "./certificates/agents-worker/worker.cer:/tmp/certificates/worker.cer:z"
+      - "./certificates/agents-worker/worker.key:/tmp/certificates/worker.key:z"
+      - "./certificates/ca/ca.cer:/tmp/certificates/ca.cer:z"
     depends_on:
       openuem-certs:
         condition: service_completed_successfully
@@ -217,10 +217,10 @@ services:
       - $CONSOLE_PORT:$CONSOLE_PORT
       - $AUTH_PORT:$AUTH_PORT
     volumes:
-      - "./certificates/console/console.cer:/bin/certificates/console.cer:ro"
-      - "./certificates/console/console.key:/bin/certificates/console.key:ro"
-      - "./certificates/console/sftp.key:/bin/certificates/sftp.key:ro"
-      - "./certificates/ca/ca.cer:/bin/certificates/ca.cer:ro"
+      - "./certificates/console/console.cer:/bin/certificates/console.cer:z"
+      - "./certificates/console/console.key:/bin/certificates/console.key:z"
+      - "./certificates/console/sftp.key:/bin/certificates/sftp.key:z"
+      - "./certificates/ca/ca.cer:/bin/certificates/ca.cer:z"
     depends_on:
       openuem-certs:
         condition: service_completed_successfully
