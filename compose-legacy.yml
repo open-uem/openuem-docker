@@ -1,0 +1,174 @@
+name: openuem
+
+services:
+  db:
+    build:
+      context: ./build/postgres
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_PASSWORD=apassword
+    ports:
+      - $POSTGRES_PORT:5432
+    restart: always
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 1s
+      timeout: 5s
+      retries: 10
+    profiles: ["init"]
+
+  openuem-certs:
+    container_name: openuem-certs
+    build:
+      context: ./build/certs
+    entrypoint:
+      - /bin/create-certs.sh
+    env_file:
+      - .env
+    volumes:
+      - "./certificates:/certificates"
+    profiles: ["init"]
+    depends_on:
+      db:
+        condition: service_healthy
+
+  ocsp-responder:
+    image: openuem/openuem-ocsp-responder
+    pull_policy: always
+    command: "start"
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - "./certificates/ocsp/ocsp.cer:/usr/bin/certificates/ocsp.cer"
+      - "./certificates/ocsp/ocsp.key:/usr/bin/certificates/ocsp.key"
+      - "./certificates/ca/ca.cer:/usr/bin/certificates/ca.cer"
+    ports:
+      - $OCSP_PORT:$OCSP_PORT
+    profiles: ["openuem"]
+
+  nats-server:
+    container_name: openuem-nats-server
+    build:
+      context: ./build/nats
+      args:
+        - NATS_SERVER
+        - NATS_PORT
+        - ORGNAME
+        - ORGPROVINCE
+        - ORGLOCALITY
+        - ORGADDRESS
+        - COUNTRY
+    env_file:
+      - .env
+    ports:
+      - $NATS_PORT:$NATS_PORT
+    restart: always
+    volumes:
+      - "./certificates/nats/nats.cer:/etc/nats-certificates/nats.cer"
+      - "./certificates/nats/nats.key:/etc/nats-certificates/nats.key"
+      - "./certificates/ca/ca.cer:/etc/nats-certificates/ca.cer"
+      - jetstream:/var/lib/jetstream/data
+    profiles: ["openuem"]
+    depends_on:
+      ocsp-responder:
+        condition: service_started
+
+  notification-worker:
+    image: openuem/openuem-worker
+    pull_policy: always
+    command: "notifications start"
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - "./certificates/notification-worker/worker.cer:/tmp/certificates/worker.cer"
+      - "./certificates/notification-worker/worker.key:/tmp/certificates/worker.key"
+      - "./certificates/ca/ca.cer:/tmp/certificates/ca.cer"
+    profiles: ["openuem"]
+    depends_on:
+      nats-server:
+        condition: service_started
+
+  cert-manager-worker:
+    image: openuem/openuem-worker
+    pull_policy: always
+    command: "cert-manager start"
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - "./certificates/cert-manager-worker/worker.cer:/tmp/certificates/worker.cer"
+      - "./certificates/cert-manager-worker/worker.key:/tmp/certificates/worker.key"
+      - "./certificates/ca/ca.cer:/tmp/certificates/ca.cer"
+      - "./certificates/ca/ca.key:/tmp/certificates/ca.key"
+    profiles: ["openuem"]
+    depends_on:
+      nats-server:
+        condition: service_started
+
+  agents-worker:
+    image: openuem/openuem-worker
+    pull_policy: always
+    command: "agents start"
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - "./certificates/agents-worker/worker.cer:/tmp/certificates/worker.cer"
+      - "./certificates/agents-worker/worker.key:/tmp/certificates/worker.key"
+      - "./certificates/ca/ca.cer:/tmp/certificates/ca.cer"
+    profiles: ["openuem"]
+    depends_on:
+      nats-server:
+        condition: service_started
+
+  console:
+    image: openuem/openuem-console
+    pull_policy: always
+    ports:
+      - $CONSOLE_PORT:$CONSOLE_PORT
+      - $AUTH_PORT:$AUTH_PORT
+    command: "start"
+    restart: always
+    env_file:
+      - .env
+    profiles: ["openuem"]
+    volumes:
+      - "./certificates/console/console.cer:/bin/certificates/console.cer"
+      - "./certificates/console/console.key:/bin/certificates/console.key"
+      - "./certificates/console/sftp.key:/bin/certificates/sftp.key"
+      - "./certificates/ca/ca.cer:/bin/certificates/ca.cer"
+    depends_on:
+      nats-server:
+        condition: service_started
+
+  # caddy:
+  #   image: caddy:latest
+  #   restart: always
+  #   profiles: ["caddy"]
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     - "443:443"
+  #     - $REVERSE_PROXY_AUTH_PORT:$REVERSE_PROXY_AUTH_PORT
+  #   volumes:
+  #     - "./caddy/Caddyfile:/etc/caddy/Caddyfile"
+  #     - "./certificates/ca/ca.cer:/etc/caddy/ca.cer"
+  #     - "./certificates/console/proxy.cer:/etc/caddy/proxy.cer"
+  #     - "./certificates/console/proxy.key:/etc/caddy/proxy.key"
+  #     - caddy_data:/data
+  #     - caddy_config:/config
+
+volumes:
+  # caddy_data:
+  #   driver: local
+  # caddy_config:
+  #   driver: local
+  pgdata:
+    driver: local
+  jetstream:
+    driver: local
