@@ -7,13 +7,13 @@ services:
     restart: always
     container_name: openuem-reverse-proxy
     environment:
-      - SERVER_NAME=$CONSOLE_HOST
-      - CONSOLE_PORT=$CONSOLE_PORT
-      - REVERSE_PROXY_SERVER=$REVERSE_PROXY_HOST
-      - REVERSE_PROXY_AUTH_PORT=$REVERSE_PROXY_AUTH_PORT
-      - AUTH_PORT=$CONSOLE_AUTH_PORT
+      - SERVER_NAME=${CONSOLE_HOST:?CONSOLE_HOST env variable needs to be set!}
+      - CONSOLE_PORT=${CONSOLE_PORT:?CONSOLE_PORT env variable needs to be set!}
+      - REVERSE_PROXY_SERVER=${REVERSE_PROXY_HOST:? REVERSE_PROXY_HOST env variable needs to be set!}
+      - REVERSE_PROXY_AUTH_PORT=${REVERSE_PROXY_AUTH_PORT:?REVERSE_PROXY_AUTH_PORT env variable needs to be set!}
+      - AUTH_PORT=${CONSOLE_AUTH_PORT:?CONSOLE_AUTH_PORT env variable needs to be set!}
     ports:
-      - $REVERSE_PROXY_CONSOLE_PORT:443
+      - "${REVERSE_PROXY_CONSOLE_PORT:?env variable needs to be set!}:443"
       - $REVERSE_PROXY_AUTH_PORT:$REVERSE_PROXY_AUTH_PORT
     volumes:
       - "./caddy/Caddyfile:/etc/caddy/Caddyfile:z"
