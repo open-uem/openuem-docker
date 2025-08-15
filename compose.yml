@@ -78,7 +78,7 @@ services:
         condition: service_started
 
   notification-worker:
-    image: openuem/openuem-worker
+    image: openuem/openuem-worker:devel
     pull_policy: always
     command: "notifications start"
     restart: always
@@ -94,7 +94,7 @@ services:
         condition: service_started
 
   cert-manager-worker:
-    image: openuem/openuem-worker
+    image: openuem/openuem-worker:devel
     pull_policy: always
     command: "cert-manager start"
     restart: always
@@ -111,7 +111,7 @@ services:
         condition: service_started
 
   agents-worker:
-    image: openuem/openuem-worker
+    image: openuem/openuem-worker:devel
     pull_policy: always
     command: "agents start"
     restart: always
