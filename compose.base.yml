@@ -41,7 +41,7 @@ services:
       - OCSP=${OCSP_URL:?OCSP_URL env variable needs to be set!}
       - DATABASE_URL=${OPENUEM_DATABASE_URL:?OPENUEM_DATABASE_URL env variable needs to be set!}
       - SERVER_NAME=${CONSOLE_HOST:?CONSOLE_HOST env variable needs to be set!}
-      - REVERSE_PROXY_SERVER=${REVERSE_PROXY_HOST:?REVERSE_PROXY_HOST env variable needs to be set!}
+      - REVERSE_PROXY_SERVER=${REVERSE_PROXY_HOST}
       - NATS_SERVER=${NATS_HOST:?NATS_HOST env variable needs to be set!}
     volumes:
       - "./certificates:/certificates:z"
@@ -106,7 +106,6 @@ services:
       - "./certificates/nats/nats.cer:/etc/nats-certificates/nats.cer:z"
       - "./certificates/nats/nats.key:/etc/nats-certificates/nats.key:z"
       - "./certificates/ca/ca.cer:/etc/nats-certificates/ca.cer:z"
-      - "./nats/nats.cfg:/etc/nats.cfg:z"
       - jetstream:/var/lib/jetstream/data
     depends_on:
       openuem-certs:
@@ -211,11 +210,11 @@ services:
       - ORGLOCALITY=${OPENUEM_ORGLOCALITY?OPENUEM_ORGLOCALITY env variable needs to be set!}
       - ORGADDRESS=${OPENUEM_ORGADDRESS?OPENUEM_ORGADDRESS env variable needs to be set!}
       - COUNTRY=${OPENUEM_ORGCOUNTRY:?OPENUEM_ORGCOUNTRY env variable needs to be set!}
-      - REVERSE_PROXY_AUTH_PORT=${REVERSE_PROXY_AUTH_PORT:?REVERSE_PROXY_AUTH_PORT env variable needs to be set!}
-      - REVERSE_PROXY_SERVER=${REVERSE_PROXY_HOST:?REVERSE_PROXY_HOST env variable needs to be set!}
+      - REVERSE_PROXY_AUTH_PORT=${REVERSE_PROXY_AUTH_PORT}
+      - REVERSE_PROXY_SERVER=${REVERSE_PROXY_HOST}
     ports:
       - $CONSOLE_PORT:$CONSOLE_PORT
-      - $AUTH_PORT:$AUTH_PORT
+      - $CONSOLE_AUTH_PORT:$CONSOLE_AUTH_PORT
     volumes:
       - "./certificates/console/console.cer:/bin/certificates/console.cer:z"
       - "./certificates/console/console.key:/bin/certificates/console.key:z"
