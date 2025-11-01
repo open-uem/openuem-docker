@@ -1,4 +1,4 @@
-FROM debian:latest AS build
+FROM debian:trixie AS build
 RUN apt-get update -y && apt install dos2unix -y
 ARG NATS_SERVER
 ENV SERVER_NAME=$NATS_SERVER
