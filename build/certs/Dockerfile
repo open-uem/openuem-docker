@@ -1,4 +1,4 @@
-FROM debian:latest AS build
+FROM debian:trixie AS build
 RUN apt-get update -y && apt install dos2unix -y
 COPY ./create-certs.sh /tmp/create-certs.sh
 RUN dos2unix /tmp/create-certs.sh
