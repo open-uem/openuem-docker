@@ -3,7 +3,7 @@ name: openuem
 services:
   db:
     container_name: openuem-db
-    image: postgres:latest
+    image: postgres:17
     restart: always
     command: -p $DATABASE_PORT
     environment:
@@ -27,8 +27,7 @@ services:
 
   openuem-certs:
     container_name: openuem-certs
-    build:
-      context: ./build/certs
+    image: openuem/openuem-certs-manager
     entrypoint:
       - /bin/create-certs.sh
     environment:
@@ -41,7 +40,7 @@ services:
       - OCSP=${OCSP_URL:?OCSP_URL env variable needs to be set!}
       - DATABASE_URL=${OPENUEM_DATABASE_URL:?OPENUEM_DATABASE_URL env variable needs to be set!}
       - SERVER_NAME=${CONSOLE_HOST:?CONSOLE_HOST env variable needs to be set!}
-      - REVERSE_PROXY_SERVER=${REVERSE_PROXY_HOST:?REVERSE_PROXY_HOST env variable needs to be set!}
+      - REVERSE_PROXY_SERVER=${REVERSE_PROXY_HOST}
       - NATS_SERVER=${NATS_HOST:?NATS_HOST env variable needs to be set!}
     volumes:
       - "./certificates:/certificates:z"
@@ -87,22 +86,20 @@ services:
 
   nats-server:
     container_name: openuem-nats-server
-    build:
-      context: ./build/nats
-      args:
-        - NATS_SERVER=${NATS_HOST:?NATS_HOST env variable needs to be set!}
-        - NATS_PORT=${NATS_PORT:?NATS_PORT env variable needs to be set!}
-        - ORGNAME=${OPENUEM_ORGNAME?OPENUEM_ORGNAME env variable needs to be set!}
-        - ORGPROVINCE=${OPENUEM_ORGPROVINCE?OPENUEM_ORGPROVINCE env variable needs to be set!}
-        - ORGLOCALITY=${OPENUEM_ORGLOCALITY?OPENUEM_ORGLOCALITY env variable needs to be set!}
-        - ORGADDRESS=${OPENUEM_ORGADDRESS?OPENUEM_ORGADDRESS env variable needs to be set!}
-        - COUNTRY=${OPENUEM_ORGCOUNTRY?OPENUEM_ORGCOUNTRY env variable needs to be set!}
     image: nats:latest
+    environment:
+      - NATS_SERVER=${NATS_HOST:?NATS_HOST env variable needs to be set!}
+      - NATS_PORT=${NATS_PORT:?NATS_PORT env variable needs to be set!}
+      - ORGNAME=${OPENUEM_ORGNAME?OPENUEM_ORGNAME env variable needs to be set!}
+      - ORGPROVINCE=${OPENUEM_ORGPROVINCE?OPENUEM_ORGPROVINCE env variable needs to be set!}
+      - ORGLOCALITY=${OPENUEM_ORGLOCALITY?OPENUEM_ORGLOCALITY env variable needs to be set!}
+      - ORGADDRESS=${OPENUEM_ORGADDRESS?OPENUEM_ORGADDRESS env variable needs to be set!}
+      - COUNTRY=${OPENUEM_ORGCOUNTRY?OPENUEM_ORGCOUNTRY env variable needs to be set!}
     ports:
       - $NATS_PORT:${NATS_PORT:?NATS_PORT env variable needs to be set!}
     restart: always
     command: "-c /etc/nats.cfg"
-    volumes:
+    volumes:      
       - "./certificates/nats/nats.cer:/etc/nats-certificates/nats.cer:z"
       - "./certificates/nats/nats.key:/etc/nats-certificates/nats.key:z"
       - "./certificates/ca/ca.cer:/etc/nats-certificates/ca.cer:z"
@@ -211,11 +208,12 @@ services:
       - ORGLOCALITY=${OPENUEM_ORGLOCALITY?OPENUEM_ORGLOCALITY env variable needs to be set!}
       - ORGADDRESS=${OPENUEM_ORGADDRESS?OPENUEM_ORGADDRESS env variable needs to be set!}
       - COUNTRY=${OPENUEM_ORGCOUNTRY:?OPENUEM_ORGCOUNTRY env variable needs to be set!}
-      - REVERSE_PROXY_AUTH_PORT=${REVERSE_PROXY_AUTH_PORT:?REVERSE_PROXY_AUTH_PORT env variable needs to be set!}
-      - REVERSE_PROXY_SERVER=${REVERSE_PROXY_HOST:?REVERSE_PROXY_HOST env variable needs to be set!}
+      - REVERSE_PROXY_AUTH_PORT=${REVERSE_PROXY_AUTH_PORT}
+      - REVERSE_PROXY_SERVER=${REVERSE_PROXY_HOST}
+      - RE_ENABLE_CERTIFICATES_AUTH=${CONSOLE_RE_ENABLE_CERTIFICATES_AUTH}
     ports:
       - $CONSOLE_PORT:$CONSOLE_PORT
-      - $AUTH_PORT:$AUTH_PORT
+      - $CONSOLE_AUTH_PORT:$CONSOLE_AUTH_PORT
     volumes:
       - "./certificates/console/console.cer:/bin/certificates/console.cer:z"
       - "./certificates/console/console.key:/bin/certificates/console.key:z"
