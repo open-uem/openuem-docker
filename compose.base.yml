@@ -13,8 +13,6 @@ services:
       - POSTGRES_PORT=${DATABASE_PORT:?DATABASE_PORT env variable needs to be set!}
     expose:
       - $DATABASE_PORT
-    ports:
-      - $DATABASE_PORT:$DATABASE_PORT
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -27,9 +25,9 @@ services:
 
   openuem-certs:
     container_name: openuem-certs
-    image: openuem/openuem-certs-manager
+    image: openuem/openuem-cert-manager
     entrypoint:
-      - /bin/create-certs.sh
+      - /bin/configure.sh
     environment:
       - ORGNAME=${OPENUEM_ORGNAME?OPENUEM_ORGNAME env variable needs to be set!}
       - ORGPROVINCE=${OPENUEM_ORGPROVINCE?OPENUEM_ORGPROVINCE env variable needs to be set!}
@@ -42,8 +40,10 @@ services:
       - SERVER_NAME=${CONSOLE_HOST:?CONSOLE_HOST env variable needs to be set!}
       - REVERSE_PROXY_SERVER=${REVERSE_PROXY_HOST}
       - NATS_SERVER=${NATS_HOST:?NATS_HOST env variable needs to be set!}
+      - NATS_PORT=${NATS_PORT:?NATS_PORT env variable needs to be set!}
     volumes:
       - "./certificates:/certificates:z"
+      - "./nats:/etc/nats:z"
     depends_on:
       db:
         condition: service_healthy
