@@ -69,7 +69,7 @@ services:
     # circumstances. To allow podman to run this stack as well, the healthcheck definitions are duplicated and set below
     # as well. See https://github.com/containers/podman/issues/18904 for more details
     healthcheck:
-      test: curl -f http://localhost:8000/health || exit 1
+      test: curl -f http://localhost:${OCSP_PORT}/health || exit 1
       interval: 30s
       timeout: 5s
       start_period: 30s
@@ -211,6 +211,8 @@ services:
       - REVERSE_PROXY_AUTH_PORT=${REVERSE_PROXY_AUTH_PORT}
       - REVERSE_PROXY_SERVER=${REVERSE_PROXY_HOST}
       - RE_ENABLE_CERTIFICATES_AUTH=${CONSOLE_RE_ENABLE_CERTIFICATES_AUTH}
+      - RE_ENABLE_PASSWD_AUTH=${CONSOLE_RE_ENABLE_PASSWD_AUTH}
+      - RESET_OPENUEM_USER=${CONSOLE_RESET_OPENUEM_USER}
     ports:
       - $CONSOLE_PORT:$CONSOLE_PORT
       - $CONSOLE_AUTH_PORT:$CONSOLE_AUTH_PORT

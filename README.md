@@ -5,7 +5,7 @@ Repository containing the docker compose file to run OpenUEM in a container envi
 OpenUEM can be run using Docker/Podman containers that are hosted on [Docker Hub](https://hub.docker.com/u/openuem)
 
 > [!WARNING]
-> For deployments carried out before November 15, 2025, breaking changes are introduced. Please see the note later in this document.
+> For deployments carried out before December 22, 2025, breaking changes are introduced. Please see the note later in this document.
 
 You can use [docker compose](https://docs.docker.com/compose/)
 or [podman compose](https://github.com/containers/podman-compose) to install and run all OpenUEM components on a single machine following these steps:
@@ -26,7 +26,8 @@ git clone https://github.com/open-uem/openuem-docker`
 > - On Windows: the configuration can be found under `C:\Windows\System32\drivers\etc\hosts`
 > - On Linux: this configuration can be found under `/etc/hosts`
 > - On macOS: the configuration can be found under /private/etc/hosts
->It is **important** that you use your **local ip address** (e.g. 192.168.1.43) **instead** of localhost or 127.0.0.1. Docker will copy these
+
+> It is **important** that you use your **local ip address** (e.g. 192.168.1.43) **instead** of localhost or 127.0.0.1. Docker will copy these
 >overrides into the containers on start. If you use localhost, each container will only try to connect to itself, making proper domain resolution impossible.
 
 3) Where the `compose.yaml` file and the .env files are located, launch OpenUEM with the following command: 
@@ -37,15 +38,21 @@ docker compose up -d
 > [!NOTE]
 > Please read the [docs](https://openuem.eu/docs/Installation/Server/docker) to know more about the env variables and how to deploy OpenUEM with Caddy as a reverse proxy.
 
-4) On first start all the certificates are generated in the certificates folder. he generation of certificates can take some time, don't stop the containers or go to the next step until you check that
+4) On first start all the certificates are generated in the certificates folder. 
+
+The generation of certificates can take some time, don't stop the containers or go to the next step until you check that
 certificates have been indeed created. This should be automatically done when the `... compose up ...` command finishes. If you find two files under the `agents` folder and one `.pfx` file inside the `users` folder, you're good to go.
 
 5) If you find any error trying to launch the services, run the `docker compose down` or `podman compose down` commands shown below, **remove the
 volumes and the certificates folder** and start again. You can use the -v flag to remove the volumes used by the postgres database and the NATS server.
 
-## Notes for deployments carried out before November 15, 2025
+## Notes for deployments carried out before December 22, 2025
 
 The previous version of this repository contained environment variables that have been replaced or renamed. Additionally, a build folder containing scripts for generating the database and NATS configuration has been removed. If you wish to update your Docker deployment, please use the following information.
+
+> [!CAUTION]
+> Do not delete the volume used by the Postgres container to ensure the database remains intact when updating containers. Do not use the -v option with Docker Compose to prevent the deletion of the Postgres volume.
+
 
 1) Remove the old containers. Run the following commands from the folder where your old deployment was created. 
 
