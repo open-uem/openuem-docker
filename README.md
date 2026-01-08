@@ -57,14 +57,14 @@ The previous version of this repository contained environment variables that hav
 1) Remove the old containers. Run the following commands from the folder where your old deployment was created. 
 
 ```(bash)
-docker compose down --profile openuem down
-docker compose down --profile init down
+docker compose --profile openuem down
+docker compose --profile init down
 ```
 
 2) Clone the new repository
 
 ```(bash)
-git clone https://github.com/open-uem/openuem-docker`
+git clone https://github.com/open-uem/openuem-docker
 ```
 
 3) Rename the new openuem-docker repository folder to openuem. This is needed to ease the reuse of the previous Docker volumes that contain the database and the NATS streams.
