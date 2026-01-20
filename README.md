@@ -30,21 +30,26 @@ git clone https://github.com/open-uem/openuem-docker`
 > It is **important** that you use your **local ip address** (e.g. 192.168.1.43) **instead** of localhost or 127.0.0.1. Docker will copy these
 >overrides into the containers on start. If you use localhost, each container will only try to connect to itself, making proper domain resolution impossible.
 
-3) Where the `compose.yaml` file and the .env files are located, launch OpenUEM with the following command: 
+> [!NOTE]
+> Please read the [docs](https://openuem.eu/docs/Installation/Server/docker) to know more about the env variables and how to deploy OpenUEM with Caddy as a reverse proxy.
+
+3) Where the `compose.yaml` file and the .env files are located, execute the following command: 
+
+```(bash)
+docker compose up openuem-certs -d
+```
+This command will create the database service and generate all the certificates required by OpenUEM. The certificates will be located in the certificates folder. 
+
+> [!NOTE]
+> The generation of certificates can take some time, don't stop the containers or go to the next step until you check that certificates have been indeed created. If you find two files under the `agents` folder and one `.pfx` file inside the `users` folder, you're good to go.
+
+4) Once you've checked that the certificates have been generated, run the following commands to launch the remaining services: 
 
 ```(bash)
 docker compose up -d
 ```
-> [!NOTE]
-> Please read the [docs](https://openuem.eu/docs/Installation/Server/docker) to know more about the env variables and how to deploy OpenUEM with Caddy as a reverse proxy.
 
-4) On first start all the certificates are generated in the certificates folder. 
-
-The generation of certificates can take some time, don't stop the containers or go to the next step until you check that
-certificates have been indeed created. This should be automatically done when the `... compose up ...` command finishes. If you find two files under the `agents` folder and one `.pfx` file inside the `users` folder, you're good to go.
-
-5) If you find any error trying to launch the services, run the `docker compose down` or `podman compose down` commands shown below, **remove the
-volumes and the certificates folder** and start again. You can use the -v flag to remove the volumes used by the postgres database and the NATS server.
+5) You can use `docker compose logs -f` to see the logs from the OpenUEM services. If you find any error trying to launch the services, run the `docker compose down` or `podman compose down` commands shown below, **remove the volumes and the certificates folder** and start again. You can use the -v flag to remove the volumes used by the postgres database and the NATS server.
 
 ## Notes for deployments carried out before December 22, 2025
 
