@@ -39,8 +39,10 @@ services:
       - DATABASE_URL=${OPENUEM_DATABASE_URL:?OPENUEM_DATABASE_URL env variable needs to be set!}
       - SERVER_NAME=${CONSOLE_HOST:?CONSOLE_HOST env variable needs to be set!}
       - REVERSE_PROXY_SERVER=${REVERSE_PROXY_HOST}
+      - NATS_DEBUG=${NATS_DEBUG:?NATS_DEBUG env variable needs to be set!}
       - NATS_SERVER=${NATS_HOST:?NATS_HOST env variable needs to be set!}
       - NATS_PORT=${NATS_PORT:?NATS_PORT env variable needs to be set!}
+      - NATS_WEBSOCKETPORT=${NATS_WEBSOCKETPORT:? NATS_WEBSOCKETPORT env variable is not set!}
     volumes:
       - "./certificates:/certificates:z"
       - "./nats:/etc/nats:z"
@@ -97,6 +99,7 @@ services:
       - COUNTRY=${OPENUEM_ORGCOUNTRY?OPENUEM_ORGCOUNTRY env variable needs to be set!}
     ports:
       - $NATS_PORT:${NATS_PORT:?NATS_PORT env variable needs to be set!}
+      - $NATS_WEBSOCKETPORT:${NATS_WEBSOCKETPORT:?NATS_WEBSOCKETPORT env variable needs to be set!}
     restart: always
     command: "-c /etc/nats.cfg"
     volumes:      
