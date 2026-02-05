@@ -38,12 +38,12 @@ git clone https://github.com/open-uem/openuem-docker`
 ```(bash)
 docker compose up openuem-certs -d
 ```
-This command will create the database service and generate all the certificates required by OpenUEM. The certificates will be located in the certificates folder. 
+This command will create the database service, create the nats folder and the NATS configuration file, and generate all the certificates required by OpenUEM. The certificates will be located in the certificates folder. 
 
 > [!NOTE]
 > The generation of certificates can take some time, don't stop the containers or go to the next step until you check that certificates have been indeed created. If you find two files under the `agents` folder and one `.pfx` file inside the `users` folder, you're good to go.
 
-4) Once you've checked that the certificates have been generated, run the following commands to launch the remaining services: 
+4) Once you've checked that the certificates folder have been generated, that all the certificates have been created and the nats folder contains the nats.cfg file , run the following commands to launch the remaining services: 
 
 ```(bash)
 docker compose up -d
