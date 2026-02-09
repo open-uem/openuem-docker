@@ -197,6 +197,8 @@ services:
     command: "start"
     environment:
       - NATS_SERVERS=${OPENUEM_NATS_SERVERS:?OPENUEM_NATS_SERVERS env variable needs to be set!}
+      - NATS_SERVER=${NATS_HOST}
+      - NATS_PORT=${NATS_PORT}
       - DATABASE_URL=${OPENUEM_DATABASE_URL:?OPENUEM_DATABASE_URL env variable needs to be set!}
       - JWT_KEY=${CONSOLE_JWT_KEY:?CONSOLE_JWT_KEY env variable needs to be set!}
       - SERVER_NAME=${CONSOLE_HOST:?CONSOLE_HOST env variable needs to be set!}
@@ -220,7 +222,10 @@ services:
       - "./certificates/console/console.cer:/bin/certificates/console.cer:z"
       - "./certificates/console/console.key:/bin/certificates/console.key:z"
       - "./certificates/console/sftp.key:/bin/certificates/sftp.key:z"
+      - "./certificates/console/sftp.cer:/bin/certificates/sftp.cer:z"
       - "./certificates/ca/ca.cer:/bin/certificates/ca.cer:z"
+      - "./certificates/agents/agent.cer:/bin/certificates/agent.cer:z"
+      - "./certificates/agents/agent.key:/bin/certificates/agent.key:z"
     depends_on:
       openuem-certs:
         condition: service_completed_successfully
