@@ -11,6 +11,19 @@
     }
 }
 
+// {$REVERSE_PROXY_SERVER}:{$NATS_WEBSOCKETPORT} {
+//     tls /etc/caddy/proxy.cer /etc/caddy/proxy.key
+//     reverse_proxy https://{$SERVER_NAME}:{$NATS_WEBSOCKETPORT} {
+//         header_up Host {upstream_hostport}
+//         transport http {
+//             tls
+//             tls_trust_pool file {
+//                 pem_file /etc/caddy/ca.cer
+//             }
+//         }
+//     }
+// }
+
 {$REVERSE_PROXY_SERVER}:{$REVERSE_PROXY_AUTH_PORT} {
     tls /etc/caddy/proxy.cer /etc/caddy/proxy.key {
         client_auth {
