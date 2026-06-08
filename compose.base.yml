@@ -84,7 +84,7 @@ services:
     networks:
       openuem:
         aliases:
-          - ocsp.openuem.example
+          - ${OCSP_HOST}
 
   nats-server:
     container_name: openuem-nats-server
@@ -118,7 +118,7 @@ services:
     networks:
       openuem:
         aliases:
-          - nats.openuem.example
+          - ${NATS_HOST}
 
 
   notification-worker:
@@ -234,7 +234,7 @@ services:
     networks:
       openuem:
         aliases:
-          - console.openuem.example
+          - ${CONSOLE_HOST}
 
 networks:
   openuem:
