@@ -17,9 +17,21 @@ services:
       - $REVERSE_PROXY_AUTH_PORT:$REVERSE_PROXY_AUTH_PORT
     volumes:
       - "./caddy/Caddyfile:/etc/caddy/Caddyfile:z"
-      - "./certificates/ca/ca.cer:/etc/caddy/ca.cer:z"
-      - "./certificates/console/proxy.cer:/etc/caddy/proxy.cer:z"
-      - "./certificates/console/proxy.key:/etc/caddy/proxy.key:z"
+      - type: volume
+        source: certificates
+        target: /etc/caddy/ca.cer
+        volume:
+          subpath: "ca/ca.cer"
+      - type: volume
+        source: certificates
+        target: /etc/caddy/proxy.cer
+        volume:
+          subpath: "console/proxy.cer"
+      - type: volume
+        source: certificates
+        target: /etc/caddy/proxy.key
+        volume:
+          subpath: "console/proxy.key"
       - caddy_data:/data
       - caddy_config:/config
     depends_on:

@@ -44,7 +44,7 @@ services:
       - NATS_PORT=${NATS_PORT:?NATS_PORT env variable needs to be set!}
       # - NATS_WEBSOCKETPORT=${NATS_WEBSOCKETPORT}
     volumes:
-      - "./certificates:/certificates:z"
+      - "certificates:/certificates"
       - "./nats:/etc/nats:z"
     depends_on:
       db:
@@ -64,9 +64,21 @@ services:
     ports:
       - $OCSP_PORT:$OCSP_PORT
     volumes:
-      - "./certificates/ocsp/ocsp.cer:/usr/bin/certificates/ocsp.cer"
-      - "./certificates/ocsp/ocsp.key:/usr/bin/certificates/ocsp.key"
-      - "./certificates/ca/ca.cer:/usr/bin/certificates/ca.cer"
+      - type: volume
+        source: certificates
+        target: /usr/bin/certificates/ocsp.cer
+        volume:
+          subpath: "ocsp/ocsp.cer"
+      - type: volume
+        source: certificates
+        target: /usr/bin/certificates/ocsp.key
+        volume:
+          subpath: "ocsp/ocsp.key"
+      - type: volume
+        source: certificates
+        target: /usr/bin/certificates/ca.cer
+        volume:
+          subpath: "ca/ca.cer"
     # while the docker image contains a HEALTHCHECK definition, podman seems to be ignoring this under certain
     # circumstances. To allow podman to run this stack as well, the healthcheck definitions are duplicated and set below
     # as well. See https://github.com/containers/podman/issues/18904 for more details
@@ -103,9 +115,21 @@ services:
     restart: always
     command: "-c /etc/nats.cfg"
     volumes:      
-      - "./certificates/nats/nats.cer:/etc/nats-certificates/nats.cer:z"
-      - "./certificates/nats/nats.key:/etc/nats-certificates/nats.key:z"
-      - "./certificates/ca/ca.cer:/etc/nats-certificates/ca.cer:z"
+      - type: volume
+        source: certificates
+        target: /etc/nats-certificates/nats.cer
+        volume:
+          subpath: "nats/nats.cer"
+      - type: volume
+        source: certificates
+        target: /etc/nats-certificates/nats.key
+        volume:
+          subpath: "nats/nats.key"
+      - type: volume
+        source: certificates
+        target: /etc/nats-certificates/ca.cer
+        volume:
+          subpath: "ca/ca.cer"
       - "./nats/nats.cfg:/etc/nats.cfg:z"
       - jetstream:/var/lib/jetstream/data
     depends_on:
@@ -131,9 +155,21 @@ services:
       - NATS_SERVERS=${OPENUEM_NATS_SERVERS:?OPENUEM_NATS_SERVERS env variable needs to be set!}
       - DATABASE_URL=${OPENUEM_DATABASE_URL:?OPENUEM_DATABASE_URL env variable needs to be set!}
     volumes:
-      - "./certificates/notification-worker/worker.cer:/tmp/certificates/worker.cer:z"
-      - "./certificates/notification-worker/worker.key:/tmp/certificates/worker.key:z"
-      - "./certificates/ca/ca.cer:/tmp/certificates/ca.cer:z"
+      - type: volume
+        source: certificates
+        target: /tmp/certificates/worker.cer
+        volume:
+          subpath: "notification-worker/worker.cer"
+      - type: volume
+        source: certificates
+        target: /tmp/certificates/worker.key
+        volume:
+          subpath: "notification-worker/worker.key"
+      - type: volume
+        source: certificates
+        target: /tmp/certificates/ca.cer
+        volume:
+          subpath: "ca/ca.cer"
     depends_on:
       openuem-certs:
         condition: service_completed_successfully
@@ -155,10 +191,26 @@ services:
       - NATS_SERVERS=${OPENUEM_NATS_SERVERS:?OPENUEM_NATS_SERVERS env variable needs to be set!}
       - DATABASE_URL=${OPENUEM_DATABASE_URL:?OPENUEM_DATABASE_URL env variable needs to be set!}
     volumes:
-      - "./certificates/cert-manager-worker/worker.cer:/tmp/certificates/worker.cer:z"
-      - "./certificates/cert-manager-worker/worker.key:/tmp/certificates/worker.key:z"
-      - "./certificates/ca/ca.cer:/tmp/certificates/ca.cer:z"
-      - "./certificates/ca/ca.key:/tmp/certificates/ca.key:z"
+      - type: volume
+        source: certificates
+        target: /tmp/certificates/worker.cer
+        volume:
+          subpath: "cert-manager-worker/worker.cer"
+      - type: volume
+        source: certificates
+        target: /tmp/certificates/worker.key
+        volume:
+          subpath: "cert-manager-worker/worker.key"
+      - type: volume
+        source: certificates
+        target: /tmp/certificates/ca.cer
+        volume:
+          subpath: "ca/ca.cer"
+      - type: volume
+        source: certificates
+        target: /tmp/certificates/ca.key
+        volume:
+          subpath: "ca/ca.key"
     depends_on:
       openuem-certs:
         condition: service_completed_successfully
@@ -179,9 +231,21 @@ services:
       - NATS_SERVERS=${OPENUEM_NATS_SERVERS:?OPENUEM_NATS_SERVERS env variable needs to be set!}
       - DATABASE_URL=${OPENUEM_DATABASE_URL:?OPENUEM_DATABASE_URL env variable needs to be set!}
     volumes:
-      - "./certificates/agents-worker/worker.cer:/tmp/certificates/worker.cer:z"
-      - "./certificates/agents-worker/worker.key:/tmp/certificates/worker.key:z"
-      - "./certificates/ca/ca.cer:/tmp/certificates/ca.cer:z"
+      - type: volume
+        source: certificates
+        target: /tmp/certificates/worker.cer
+        volume:
+          subpath: "agents-worker/worker.cer"
+      - type: volume
+        source: certificates
+        target: /tmp/certificates/worker.key
+        volume:
+          subpath: "agents-worker/worker.key"
+      - type: volume
+        source: certificates
+        target: /tmp/certificates/ca.cer
+        volume:
+          subpath: "ca/ca.cer"
     depends_on:
       openuem-certs:
         condition: service_completed_successfully
@@ -220,10 +284,26 @@ services:
       - $CONSOLE_PORT:$CONSOLE_PORT
       - $CONSOLE_AUTH_PORT:$CONSOLE_AUTH_PORT
     volumes:
-      - "./certificates/console/console.cer:/bin/certificates/console.cer:z"
-      - "./certificates/console/console.key:/bin/certificates/console.key:z"
-      - "./certificates/console/sftp.key:/bin/certificates/sftp.key:z"
-      - "./certificates/ca/ca.cer:/bin/certificates/ca.cer:z"
+      - type: volume
+        source: certificates
+        target: /bin/certificates/console.cer
+        volume:
+          subpath: "console/console.cer"
+      - type: volume
+        source: certificates
+        target: /bin/certificates/console.key
+        volume:
+          subpath: "console/console.key"
+      - type: volume
+        source: certificates
+        target: /bin/certificates/sftp.key
+        volume:
+          subpath: "console/sftp.key"
+      - type: volume
+        source: certificates
+        target: /bin/certificates/ca.cer
+        volume:
+          subpath: "ca/ca.cer"
     depends_on:
       openuem-certs:
         condition: service_completed_successfully
@@ -243,4 +323,6 @@ volumes:
   pgdata:
     driver: local
   jetstream:
+    driver: local
+  certificates:
     driver: local

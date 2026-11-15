@@ -38,18 +38,28 @@ git clone https://github.com/open-uem/openuem-docker`
 ```(bash)
 docker compose up openuem-certs -d
 ```
-This command will create the database service, create the nats folder and the NATS configuration file, and generate all the certificates required by OpenUEM. The certificates will be located in the certificates folder. 
+This command will create the database service, create the nats folder and the NATS configuration file, and generate all the certificates required by OpenUEM. The certificates will be stored in the `openuem_certificates` Docker volume. You can check them with:
+
+```(bash)
+docker run --rm -v openuem_certificates:/certs:ro alpine ls /certs
+```
+
+To copy the generated files (e.g. the admin `.pfx` under `users/`) from the volume to a local `certificates` folder:
+
+```(bash)
+docker run --rm -v openuem_certificates:/certs:ro -v ./certificates:/out alpine sh -c "cp -a /certs/. /out/"
+```
 
 > [!NOTE]
 > The generation of certificates can take some time, don't stop the containers or go to the next step until you check that certificates have been indeed created. If you find two files under the `agents` folder and one `.pfx` file inside the `users` folder, you're good to go.
 
-4) Once you've checked that the certificates folder have been generated, that all the certificates have been created and the nats folder contains the nats.cfg file , run the following commands to launch the remaining services: 
+4) Once you've checked that the certificates have been generated and the nats folder contains the nats.cfg file , run the following commands to launch the remaining services: 
 
 ```(bash)
 docker compose up -d
 ```
 
-5) You can use `docker compose logs -f` to see the logs from the OpenUEM services. If you find any error trying to launch the services, run the `docker compose down` or `podman compose down` commands shown below, **remove the volumes and the certificates folder** and start again. You can use the -v flag to remove the volumes used by the postgres database and the NATS server.
+5) You can use `docker compose logs -f` to see the logs from the OpenUEM services. If you find any error trying to launch the services, run the `docker compose down` or `podman compose down` commands shown below, **remove the volumes** and start again. You can use the -v flag to remove the volumes used by the postgres database, the NATS server and the certificates volume.
 
 ## Notes for deployments carried out before December 22, 2025
 
@@ -101,6 +111,11 @@ The old OCSP variable has been replaced with two variables OCSP_HOST and OCSP_PO
 
 The old SERVER_NAME was used to assign the console hostname, the ocsp responder URL, and the NATS_SERVERS variable. You must specify the CONSOLE_HOST, OCSP_HOST, NATS_HOST accordingly.
 
-5) Create a certificates folder and copy the contents of the old certificates folder where your old deployment was created.
+5) Copy the contents of the old certificates folder from your previous deployment into the new `openuem_certificates` volume:
+
+```(bash)
+docker volume create openuem_certificates
+docker run --rm -v openuem_certificates:/certs -v ./certificates:/old:ro alpine sh -c "cp -a /old/. /certs/"
+```
 
 6) Run `docker compose up -d` from the new folder. The new images will be pulled and the new services will be started.
