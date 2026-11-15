@@ -198,6 +198,12 @@ services:
     restart: always
     pull_policy: always
     command: "start"
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'exec 3<>/dev/tcp/localhost/$${CONSOLE_PORT:-1323} && exec 3>&- 3<&-'"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
     environment:
       - NATS_SERVERS=${OPENUEM_NATS_SERVERS:?OPENUEM_NATS_SERVERS env variable needs to be set!}
       - DATABASE_URL=${OPENUEM_DATABASE_URL:?OPENUEM_DATABASE_URL env variable needs to be set!}
