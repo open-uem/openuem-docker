@@ -59,6 +59,7 @@ services:
     command: "start"
     restart: always
     environment:
+      - TZ=${TZ:-UTC}
       - OCSP_PORT=${OCSP_PORT:?OCSP_PORT env variable needs to be set!}
       - DATABASE_URL=${OPENUEM_DATABASE_URL:?OPENUEM_DATABASE_URL env variable needs to be set!}
     ports:
@@ -128,6 +129,7 @@ services:
     command: "notifications start"
     restart: always
     environment:
+      - TZ=${TZ:-UTC}
       - NATS_SERVERS=${OPENUEM_NATS_SERVERS:?OPENUEM_NATS_SERVERS env variable needs to be set!}
       - DATABASE_URL=${OPENUEM_DATABASE_URL:?OPENUEM_DATABASE_URL env variable needs to be set!}
     volumes:
@@ -151,6 +153,7 @@ services:
     command: "cert-manager start"
     restart: always
     environment:
+      - TZ=${TZ:-UTC}
       - OCSP=${OCSP_URL:?OCSP_URL env variable needs to be set!}
       - NATS_SERVERS=${OPENUEM_NATS_SERVERS:?OPENUEM_NATS_SERVERS env variable needs to be set!}
       - DATABASE_URL=${OPENUEM_DATABASE_URL:?OPENUEM_DATABASE_URL env variable needs to be set!}
@@ -176,6 +179,7 @@ services:
     command: "agents start"
     restart: always
     environment:
+      - TZ=${TZ:-UTC}
       - NATS_SERVERS=${OPENUEM_NATS_SERVERS:?OPENUEM_NATS_SERVERS env variable needs to be set!}
       - DATABASE_URL=${OPENUEM_DATABASE_URL:?OPENUEM_DATABASE_URL env variable needs to be set!}
     volumes:
@@ -199,6 +203,7 @@ services:
     pull_policy: always
     command: "start"
     environment:
+      - TZ=${TZ:-UTC}
       - NATS_SERVERS=${OPENUEM_NATS_SERVERS:?OPENUEM_NATS_SERVERS env variable needs to be set!}
       - DATABASE_URL=${OPENUEM_DATABASE_URL:?OPENUEM_DATABASE_URL env variable needs to be set!}
       - JWT_KEY=${CONSOLE_JWT_KEY:?CONSOLE_JWT_KEY env variable needs to be set!}
